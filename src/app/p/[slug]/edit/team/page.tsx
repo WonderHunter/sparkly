@@ -1,7 +1,8 @@
 import { Mail, UserMinus, X } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { EditorSection } from "@/components/editor/editor-section";
-import { Field, Input, Select } from "@/components/ui/form";
+import { Field, Input } from "@/components/ui/form";
+import { Select } from "@/components/ui/select";
 import { Avatar, Badge } from "@/components/ui/misc";
 import { getEditContext } from "@/lib/data/editor";
 import { getProjectPage } from "@/lib/data/projects";
@@ -63,10 +64,15 @@ export default async function TeamTab({ params }: PageProps<"/p/[slug]/edit/team
               <FieldError name="email" />
             </Field>
             <Field label="Profil" htmlFor="role">
-              <Select id="role" name="role" defaultValue="dev">
-                <option value="dev">Dev</option>
-                <option value="crea">Créa / Com</option>
-              </Select>
+              <Select
+                id="role"
+                name="role"
+                defaultValue="dev"
+                options={[
+                  { value: "dev", label: "Dev", hint: "Unity, web, intégration" },
+                  { value: "crea", label: "Créa / Com", hint: "Graphisme, son, communication" },
+                ]}
+              />
             </Field>
             <Field label="Rôle affiché" htmlFor="teamTitle" className="sm:col-span-2">
               <Input id="teamTitle" name="teamTitle" maxLength={60} placeholder="Ex. Sound designer" />

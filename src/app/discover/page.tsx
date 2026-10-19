@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProjectGrid } from "@/components/project/project-card";
 import { Button } from "@/components/ui/button";
-import { Input, Select } from "@/components/ui/form";
+import { Input } from "@/components/ui/form";
+import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/misc";
 import { listCategories, listProjects, type SortKey, type StateFilter } from "@/lib/data/projects";
 import { PLATFORM_LABEL, type Platform } from "@/lib/types";
@@ -50,45 +51,42 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
         <label className="sr-only" htmlFor="category">
           Genre
         </label>
-        <Select id="category" name="category" defaultValue={category ?? ""}>
-          <option value="">Tous les genres</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.slug}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
+        <Select
+          id="category"
+          name="category"
+          defaultValue={category ?? ""}
+          options={[{ value: "", label: "Tous les genres" }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]}
+        />
         <label className="sr-only" htmlFor="platform">
           Plateforme
         </label>
-        <Select id="platform" name="platform" defaultValue={platform ?? ""}>
-          <option value="">Toutes les plateformes</option>
-          {Object.entries(PLATFORM_LABEL).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </Select>
+        <Select
+          id="platform"
+          name="platform"
+          defaultValue={platform ?? ""}
+          options={[
+            { value: "", label: "Toutes les plateformes" },
+            ...Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label })),
+          ]}
+        />
         <label className="sr-only" htmlFor="state">
           État
         </label>
-        <Select id="state" name="state" defaultValue={state}>
-          {Object.entries(STATES).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </Select>
+        <Select
+          id="state"
+          name="state"
+          defaultValue={state}
+          options={Object.entries(STATES).map(([value, label]) => ({ value, label }))}
+        />
         <label className="sr-only" htmlFor="sort">
           Tri
         </label>
-        <Select id="sort" name="sort" defaultValue={sort}>
-          {Object.entries(SORTS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </Select>
+        <Select
+          id="sort"
+          name="sort"
+          defaultValue={sort}
+          options={Object.entries(SORTS).map(([value, label]) => ({ value, label }))}
+        />
         <Button type="submit" variant="secondary" className="h-11">
           Filtrer
         </Button>

@@ -1,7 +1,8 @@
 import { Check, LoaderCircle, RotateCcw, Trash2 } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { EditorSection } from "@/components/editor/editor-section";
-import { Field, Input, Select } from "@/components/ui/form";
+import { Field, Input } from "@/components/ui/form";
+import { Select } from "@/components/ui/select";
 import { Badge, ProgressBar } from "@/components/ui/misc";
 import { getEditContext } from "@/lib/data/editor";
 import { MILESTONE_STATUS_LABEL, type MilestoneStatus } from "@/lib/domain/progress";
@@ -116,13 +117,12 @@ function MilestoneFields({ milestone, withStatus = false }: { milestone?: Milest
       </Field>
       {withStatus && (
         <Field label="Statut" htmlFor={`status-${p}`}>
-          <Select id={`status-${p}`} name="status" defaultValue={milestone?.status}>
-            {Object.entries(MILESTONE_STATUS_LABEL).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
+          <Select
+            id={`status-${p}`}
+            name="status"
+            defaultValue={milestone?.status}
+            options={Object.entries(MILESTONE_STATUS_LABEL).map(([value, label]) => ({ value, label }))}
+          />
         </Field>
       )}
     </div>

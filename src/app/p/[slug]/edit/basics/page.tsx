@@ -3,7 +3,8 @@ import { ImageField } from "@/components/editor/image-upload";
 import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 import { SlugField } from "@/components/editor/slug-field";
-import { Field, FormMessage, Input, Select, Textarea } from "@/components/ui/form";
+import { Field, FormMessage, Input, Textarea } from "@/components/ui/form";
+import { Select } from "@/components/ui/select";
 import { findTitleConflicts, listCategories } from "@/lib/data/projects";
 import { SITE_URL } from "@/lib/env";
 import { getEditContext } from "@/lib/data/editor";
@@ -64,23 +65,20 @@ export default async function BasicsTab({ params, searchParams }: PageProps<"/p/
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Plateforme" htmlFor="platform">
-            <Select id="platform" name="platform" defaultValue={project.platform}>
-              {Object.entries(PLATFORM_LABEL).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </Select>
+            <Select
+              id="platform"
+              name="platform"
+              defaultValue={project.platform}
+              options={Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label }))}
+            />
           </Field>
           <Field label="Genre" htmlFor="categoryId">
-            <Select id="categoryId" name="categoryId" defaultValue={project.category_id?.toString() ?? ""}>
-              <option value="">Non précisé</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
+            <Select
+              id="categoryId"
+              name="categoryId"
+              defaultValue={project.category_id?.toString() ?? ""}
+              options={[{ value: "", label: "Non précisé" }, ...categories.map((c) => ({ value: String(c.id), label: c.name }))]}
+            />
             <FieldError name="categoryId" />
           </Field>
         </div>

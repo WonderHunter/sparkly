@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Eye, Megaphone, Pencil, Plus, Shield } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { Field, FormMessage, Input, Select } from "@/components/ui/form";
+import { Field, FormMessage, Input } from "@/components/ui/form";
+import { Select } from "@/components/ui/select";
 import { Badge, Card, EmptyState, ProgressBar, SparkMark } from "@/components/ui/misc";
 import { requireViewer } from "@/lib/auth";
 import { listMyProjects, type MyProject } from "@/lib/data/projects";
@@ -226,13 +227,12 @@ function CreateProjectCard({ disabled }: { disabled: boolean }) {
             <FieldError name="title" />
           </Field>
           <Field label="Plateforme" htmlFor="platform">
-            <Select id="platform" name="platform" defaultValue="borne">
-              {Object.entries(PLATFORM_LABEL).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </Select>
+            <Select
+              id="platform"
+              name="platform"
+              defaultValue="borne"
+              options={Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label }))}
+            />
             <FieldError name="platform" />
           </Field>
         </div>

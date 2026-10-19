@@ -2,7 +2,8 @@ import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { GalleryField } from "@/components/editor/image-upload";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Select } from "@/components/ui/form";
+import { Field, Input } from "@/components/ui/form";
+import { Select } from "@/components/ui/select";
 import type { FormState } from "@/app/p/[slug]/edit/actions";
 import type { Milestone, Post } from "@/lib/types";
 
@@ -44,14 +45,12 @@ export function PostForm({ action, projectId, milestones, post }: PostFormProps)
       </div>
       <GalleryField name="images" bucket="project-media" folder={projectId} defaultValue={post?.images ?? []} />
       <Field label="Jalon concerné" htmlFor="milestoneId" hint="Optionnel : relie la mise à jour à une étape du planning.">
-        <Select id="milestoneId" name="milestoneId" defaultValue={post?.milestone_id ?? ""}>
-          <option value="">Aucun</option>
-          {milestones.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.title}
-            </option>
-          ))}
-        </Select>
+        <Select
+          id="milestoneId"
+          name="milestoneId"
+          defaultValue={post?.milestone_id ?? ""}
+          options={[{ value: "", label: "Aucun" }, ...milestones.map((m) => ({ value: m.id, label: m.title }))]}
+        />
       </Field>
     </ActionForm>
   );

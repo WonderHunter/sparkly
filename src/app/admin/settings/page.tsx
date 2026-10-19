@@ -1,7 +1,8 @@
 import { X } from "lucide-react";
 import { ActionForm } from "@/components/editor/action-form";
 import { EditorSection } from "@/components/editor/editor-section";
-import { Field, Input, Select, Textarea } from "@/components/ui/form";
+import { Field, Input, Textarea } from "@/components/ui/form";
+import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/misc";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -62,10 +63,15 @@ export default async function AdminSettings() {
               <Input id="domain" name="domain" placeholder="etudiant.univ-reims.fr" />
             </Field>
             <Field label="Rôle par défaut" htmlFor="role">
-              <Select id="role" name="role" defaultValue="student">
-                <option value="student">Étudiant·e</option>
-                <option value="teacher">Enseignant·e</option>
-              </Select>
+              <Select
+                id="role"
+                name="role"
+                defaultValue="student"
+                options={[
+                  { value: "student", label: "Étudiant·e" },
+                  { value: "teacher", label: "Enseignant·e" },
+                ]}
+              />
             </Field>
           </div>
         </ActionForm>

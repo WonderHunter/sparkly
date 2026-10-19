@@ -6,3 +6,11 @@ import { afterEach, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 afterEach(() => cleanup());
+
+// jsdom n'implémente pas ces API utilisées par Radix (menus déroulants).
+if (typeof Element !== "undefined") {
+  Element.prototype.hasPointerCapture ??= () => false;
+  Element.prototype.setPointerCapture ??= () => {};
+  Element.prototype.releasePointerCapture ??= () => {};
+  Element.prototype.scrollIntoView ??= () => {};
+}

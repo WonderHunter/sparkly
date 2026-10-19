@@ -129,3 +129,20 @@ body {
   height: 0;
   pointer-events: none;
 }
+
+/* Ouverture des menus déroulants */
+@keyframes sparkly-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-radix-popper-content-wrapper] * {
+    animation: none !important;
+  }
+}
