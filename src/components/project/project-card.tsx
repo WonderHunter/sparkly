@@ -6,7 +6,7 @@ import { computeTimeline, daysLeft } from "@/lib/domain/timeline";
 import { PLATFORM_LABEL, type ProjectCard as ProjectCardData } from "@/lib/types";
 
 /** Carte projet inspirée de Kickstarter : visuel, titre, accroche, jauge et statistiques. */
-export function ProjectCard({ project, priority = false }: { project: ProjectCardData; priority?: boolean }) {
+export function ProjectCard({ project, preload = false }: { project: ProjectCardData; preload?: boolean }) {
   const timeline = computeTimeline(project.starts_on!, project.ends_on!);
   const remaining = daysLeft(project.ends_on!);
 
@@ -20,7 +20,7 @@ export function ProjectCard({ project, priority = false }: { project: ProjectCar
             fill
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            priority={priority}
+            preload={preload}
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-spark-soft via-surface-muted to-[#ffe7c2]">
@@ -80,7 +80,7 @@ export function ProjectGrid({ projects }: { projects: ProjectCardData[] }) {
   return (
     <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
       {projects.map((project, i) => (
-        <ProjectCard key={project.id} project={project} priority={i < 3} />
+        <ProjectCard key={project.id} project={project} preload={i < 3} />
       ))}
     </div>
   );

@@ -21,7 +21,7 @@ export default async function EditLayout({ params, children }: LayoutProps<"/p/[
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-muted hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Mon projet
+            <ArrowLeft className="h-4 w-4" /> Mes projets
           </Link>
           <h1 className="mt-2 font-display text-3xl font-extrabold">{project.title}</h1>
           <div className="mt-2 flex items-center gap-2 text-sm">

@@ -55,7 +55,7 @@ export default async function TeamTab({ params }: PageProps<"/p/[slug]/edit/team
         </ul>
       </EditorSection>
 
-      <EditorSection title="Inviter un membre" description="La personne voit l'invitation dans « Mon projet » en se connectant avec cette adresse.">
+      <EditorSection title="Inviter un membre" description="La personne voit l'invitation dans « Mes projets » en se connectant avec cette adresse.">
         <ActionForm action={inviteMember.bind(null, project.slug)} submitLabel="Inviter" resetOnSuccess>
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Adresse universitaire" htmlFor="email" className="sm:col-span-3">

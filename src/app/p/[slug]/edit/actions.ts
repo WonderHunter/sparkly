@@ -233,7 +233,7 @@ export async function inviteMember(slug: string, _prev: FormState, formData: For
   revalidatePath(`/p/${project.slug}/edit/team`);
   return {
     ok: true,
-    message: `Invitation créée. ${parsed.data.email} la verra dans « Mon projet » à sa prochaine connexion.`,
+    message: `Invitation créée. ${parsed.data.email} la verra dans « Mes projets » à sa prochaine connexion.`,
   };
 }
 

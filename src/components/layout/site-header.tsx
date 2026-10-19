@@ -21,7 +21,7 @@ export async function SiteHeader() {
           </Link>
           {viewer && (
             <Link href="/dashboard" className="rounded-full px-3 py-2 hover:bg-surface-muted">
-              Mon projet
+              Mes projets
             </Link>
           )}
         </nav>
@@ -55,7 +55,7 @@ export async function SiteHeader() {
               </div>
               <hr className="my-1 border-border" />
               <MenuLink href="/dashboard" icon={<LayoutDashboard className="h-4 w-4" />}>
-                Mon projet
+                Mes projets
               </MenuLink>
               <MenuLink href={`/u/${viewer.profile.username}`} icon={<User className="h-4 w-4" />}>
                 Mon profil public

@@ -27,14 +27,18 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
   if (!profile) notFound();
 
   const supabase = await createClient();
-  const { data: membership } = await supabase
+  const { data: memberships } = await supabase
     .from("project_members")
     .select("role, team_title, project_id")
-    .eq("user_id", profile.id)
-    .maybeSingle();
-  const { data: card } = membership
-    ? await supabase.from("project_cards").select("*").eq("id", membership.project_id).maybeSingle()
-    : { data: null };
+    .eq("user_id", profile.id);
+  const ids = (memberships ?? []).map((m) => m.project_id);
+  const { data: cards } = ids.length
+    ? await supabase.from("project_cards").select("*").in("id", ids).order("updated_at", { ascending: false })
+    : { data: [] };
+  const projects = (cards ?? []).map((card) => ({
+    card,
+    membership: memberships!.find((m) => m.project_id === card.id)!,
+  }));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
@@ -53,17 +57,21 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
       </header>
 
       <section className="mt-14">
-        <h2 className="mb-6 font-display text-2xl font-extrabold">Projet</h2>
-        {card ? (
-          <div className="max-w-sm">
-            <p className="mb-3 text-sm text-muted">
-              {membership?.team_title || (membership && MEMBER_ROLE_LABEL[membership.role])}
-            </p>
-            <ProjectCard project={card} />
+        <h2 className="mb-6 font-display text-2xl font-extrabold">
+          {projects.length > 1 ? `Projets (${projects.length})` : "Projet"}
+        </h2>
+        {projects.length > 0 ? (
+          <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map(({ card, membership }) => (
+              <div key={card.id}>
+                <p className="mb-3 text-sm text-muted">{membership.team_title || MEMBER_ROLE_LABEL[membership.role]}</p>
+                <ProjectCard project={card} />
+              </div>
+            ))}
           </div>
         ) : (
           <EmptyState title="Pas de projet visible">
-            {profile.role === "student" ? "Ce projet n'est pas encore publié." : "Les enseignant·es accompagnent les projets."}
+            {profile.role === "student" ? "Aucun projet publié pour l'instant." : "Les enseignant·es accompagnent les projets."}
           </EmptyState>
         )}
       </section>

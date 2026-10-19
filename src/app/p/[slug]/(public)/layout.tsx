@@ -77,7 +77,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
               className="absolute inset-0 h-full w-full"
             />
           ) : project.cover_url ? (
-            <Image src={project.cover_url} alt="" fill priority sizes="(min-width: 1024px) 66vw, 100vw" className="object-cover" />
+            <Image src={project.cover_url} alt="" fill preload sizes="(min-width: 1024px) 66vw, 100vw" className="object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-spark-soft via-surface-muted to-[#ffe7c2]">
               <SparkMark className="h-20 w-20 text-spark/60" />

@@ -15,7 +15,7 @@ test.describe("Parcours étudiant", () => {
 
     // 1. Connexion et création du projet
     await login(page, ownerEmail, "/dashboard");
-    await expect(page.getByRole("heading", { name: "Le projet de mon groupe" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Mon projet" })).toBeVisible();
     await page.getByLabel(/Nom du jeu/).fill(title);
     await page.getByLabel("Plateforme").selectOption("tv");
     await page.getByRole("button", { name: "Créer le projet" }).click();

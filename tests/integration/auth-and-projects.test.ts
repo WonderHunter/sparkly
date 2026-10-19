@@ -80,11 +80,15 @@ describe("Cycle de vie d'un projet", () => {
     const { data: publicCard } = await anon.from("project_cards").select("slug, progress").eq("id", project!.id).single();
     expect(publicCard).toEqual({ slug, progress: 8 });
 
-    // Un seul projet par étudiant.
+    // Une même personne peut porter plusieurs projets.
     const second = await client
       .from("projects")
-      .insert({ slug: `${slug}-bis`, title: "Second", platform: "tv", created_by: userId });
-    expect(second.error?.code).toBe("42501");
+      .insert({ slug: `${slug}-bis`, title: "Second", platform: "tv", created_by: userId })
+      .select("id")
+      .single();
+    expect(second.error).toBeNull();
+    const { data: mine } = await client.from("project_members").select("project_id").eq("user_id", userId);
+    expect(mine).toHaveLength(2);
   });
 
   it("un étudiant ne peut pas modifier le projet d'un autre groupe", async () => {
@@ -126,6 +130,13 @@ describe("Invitations d'équipe", () => {
     expect(inviteError).toBeNull();
 
     const mate = await signInWithOtp(mateEmail);
+    // La personne invitée a déjà son propre projet : elle peut quand même rejoindre l'équipe.
+    const { data: mateUser } = await mate.auth.getUser();
+    const own = await mate
+      .from("projects")
+      .insert({ slug: `perso-${Date.now()}`, title: "Projet perso", platform: "web", created_by: mateUser.user!.id });
+    expect(own.error).toBeNull();
+
     const { data: invitations } = await mate.from("project_invitations").select("id").eq("email", mateEmail);
     expect(invitations).toHaveLength(1);
     const { data: joined, error } = await mate.rpc("accept_invitation", { p_invitation: invitations![0].id });

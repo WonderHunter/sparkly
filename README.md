@@ -23,8 +23,9 @@ Aucun argent réel : la barre de financement de Kickstarter devient la **jauge d
   - connexion sans mot de passe, par code à 6 chiffres reçu par e-mail ;
   - réservée aux adresses `@etudiant.univ-reims.fr` (rôle étudiant) et `@univ-reims.fr` (rôle enseignant) ;
   - la restriction est appliquée **en base** par un hook Supabase Auth, impossible à contourner par l'API.
-- **Un projet par groupe**
+- **Un projet par groupe, plusieurs projets par personne**
   - le créateur devient chef·fe de projet et invite ses camarades par e-mail ;
+  - une même personne peut faire partie de plusieurs groupes, avec un rôle différent dans chacun ;
   - les 6 jalons du planning de la SAÉ sont créés automatiquement.
 - **Éditeur**
   - bases (visuels compressés en WebP, vidéo YouTube/Vimeo, liens, dates) ;
@@ -54,8 +55,9 @@ Prérequis : Node 22, pnpm, Docker.
 
 ```bash
 pnpm install
-pnpm db:start          # Supabase local : migrations + données de démo
+pnpm db:start          # Supabase local : migrations + seed minimal
 cp .env.example .env.local   # puis recopier les clés affichées par db:start
+pnpm db:fixtures       # optionnel : 9 projets de démo, 22 comptes, visuels générés
 pnpm dev
 ```
 
@@ -63,7 +65,9 @@ pnpm dev
 - Supabase Studio : http://127.0.0.1:54323
 - E-mails de connexion (Mailpit) : http://127.0.0.1:54324
 
-Comptes de démo (seed local uniquement) : `alice.demo@etudiant.univ-reims.fr` (étudiante, cheffe de *Neon Pusher*), `prof.demo@univ-reims.fr` (enseignant) et `admin.demo@univ-reims.fr` (admin). Le code de connexion arrive dans Mailpit.
+`pnpm db:demo` remet la base à zéro puis recharge les fixtures. Le script refuse de tourner sur un Supabase qui n'est pas local. Les visuels (couvertures, logos, captures de devlog) sont des compositions SVG originales, rendues en image avec le Chromium de Playwright.
+
+Comptes de démo (seed local uniquement) : `alice.demo@etudiant.univ-reims.fr` (étudiante, cheffe de *Neon Pusher*), `prof.demo@univ-reims.fr` (enseignant) et `admin.demo@univ-reims.fr` (admin). Avec les fixtures, s'ajoutent par exemple `lea.bernard.fixture@etudiant.univ-reims.fr`, membre de deux projets. Le code de connexion arrive dans Mailpit.
 
 ## Tests
 

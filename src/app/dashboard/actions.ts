@@ -10,7 +10,7 @@ import { createProjectSchema, fieldErrors } from "@/lib/validation/project";
 
 export type FormState = { ok?: boolean; error?: string; message?: string; fields?: Record<string, string> };
 
-/** Crée le projet du groupe : le créateur en devient chef·fe de projet. */
+/** Crée un projet de groupe : le créateur en devient chef·fe de projet. */
 export async function createProject(_prev: FormState, formData: FormData): Promise<FormState> {
   const viewer = await requireViewer("/dashboard");
   if (viewer.isSuspended) return { error: "Ton compte est suspendu." };
@@ -32,7 +32,7 @@ export async function createProject(_prev: FormState, formData: FormData): Promi
       created_by: viewer.id,
     });
     if (!error) break;
-    if (error.code === "42501") return { error: "Tu fais déjà partie d'un projet : un seul projet par étudiant·e." };
+    if (error.code === "42501") return { error: "Ton compte ne peut pas créer de projet." };
     if (error.code !== "23505" || attempt === 2) return { error: "Création impossible pour le moment." };
   }
 
@@ -45,7 +45,7 @@ export async function acceptInvitation(invitationId: string) {
   if (!z.uuid().safeParse(invitationId).success) return;
   const supabase = await createClient();
   const { error } = await supabase.rpc("accept_invitation", { p_invitation: invitationId });
-  if (error) redirect(`/dashboard?invitation=${error.code === "23505" ? "already-member" : "error"}`);
+  if (error) redirect("/dashboard?invitation=error");
   revalidatePath("/", "layout");
   redirect("/dashboard?invitation=accepted");
 }

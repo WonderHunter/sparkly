@@ -175,13 +175,17 @@ export async function isFollowing(projectId: string, userId: string | undefined)
   return (count ?? 0) > 0;
 }
 
-/** Le projet de l'utilisateur (un seul par étudiant). */
-export async function getMyProject(userId: string) {
+/** Les projets dont l'utilisateur est membre (il peut en avoir plusieurs). */
+export async function listMyProjects(userId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("project_members")
-    .select("role, team_title, project:projects(*)")
+    .select("role, team_title, joined_at, project:projects(*)")
     .eq("user_id", userId)
-    .maybeSingle();
-  return data?.project ? { ...data, project: data.project as Project } : null;
+    .order("joined_at", { ascending: false });
+  return (data ?? [])
+    .filter((m) => m.project)
+    .map((m) => ({ role: m.role, team_title: m.team_title, project: m.project as Project }));
 }
+
+export type MyProject = Awaited<ReturnType<typeof listMyProjects>>[number];

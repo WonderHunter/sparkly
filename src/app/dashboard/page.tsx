@@ -1,23 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Eye, Megaphone, Pencil, Shield } from "lucide-react";
+import { Eye, Megaphone, Pencil, Plus, Shield } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, FormMessage, Input, Select } from "@/components/ui/form";
 import { Badge, Card, EmptyState, ProgressBar, SparkMark } from "@/components/ui/misc";
 import { requireViewer } from "@/lib/auth";
-import { getMyProject } from "@/lib/data/projects";
+import { listMyProjects, type MyProject } from "@/lib/data/projects";
 import { computeTimeline, daysLeft } from "@/lib/domain/timeline";
 import { createClient } from "@/lib/supabase/server";
 import { MEMBER_ROLE_LABEL, PLATFORM_LABEL, STATUS_LABEL } from "@/lib/types";
 import { formatRelative } from "@/lib/utils";
 import { acceptInvitation, createProject, declineInvitation } from "./actions";
 
-export const metadata: Metadata = { title: "Mon projet" };
+export const metadata: Metadata = { title: "Mes projets" };
 
 const INVITATION_MESSAGES: Record<string, { tone: "success" | "error"; text: string }> = {
   accepted: { tone: "success", text: "Bienvenue dans l'équipe !" },
-  "already-member": { tone: "error", text: "Tu fais déjà partie d'un projet : quitte-le avant d'en rejoindre un autre." },
   error: { tone: "error", text: "Cette invitation n'est plus valable." },
 };
 
@@ -27,7 +26,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   const supabase = await createClient();
 
   const [mine, { data: invitations }, { data: follows }] = await Promise.all([
-    getMyProject(viewer.id),
+    listMyProjects(viewer.id),
     supabase
       .from("project_invitations")
       .select("id, role, team_title, project:projects(title, slug, pitch)")
@@ -52,7 +51,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <h1 className="font-display text-4xl font-extrabold tracking-tight">Salut {firstName} ✦</h1>
-      <p className="mt-1 text-muted">Ton espace pour faire avancer le projet de ton groupe.</p>
+      <p className="mt-1 text-muted">Ton espace pour faire avancer les projets de tes groupes.</p>
 
       <div className="mt-6 space-y-3">
         {notice && <FormMessage tone={notice.tone}>{notice.text}</FormMessage>}
@@ -76,7 +75,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
       )}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-        <div className="space-y-8">
+        <div className="space-y-10">
           {invitations && invitations.length > 0 && (
             <section>
               <h2 className="mb-4 font-display text-2xl font-extrabold">Invitations</h2>
@@ -91,7 +90,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
                         </p>
                       </div>
                       <form action={acceptInvitation.bind(null, inv.id)}>
-                        <Button type="submit" size="sm" disabled={Boolean(mine)}>
+                        <Button type="submit" size="sm">
                           Rejoindre
                         </Button>
                       </form>
@@ -104,14 +103,34 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
                   </li>
                 ))}
               </ul>
-              {mine && <p className="mt-2 text-sm text-muted">Tu fais déjà partie d&apos;un projet : un seul projet par étudiant·e.</p>}
             </section>
           )}
 
           <section>
-            <h2 className="mb-4 font-display text-2xl font-extrabold">Le projet de mon groupe</h2>
-            {mine ? <MyProjectCard data={mine} /> : <CreateProjectCard disabled={viewer.isSuspended} />}
+            <h2 className="mb-4 font-display text-2xl font-extrabold">
+              {mine.length > 1 ? `Mes projets (${mine.length})` : "Mon projet"}
+            </h2>
+            {mine.length > 0 ? (
+              <div className="space-y-4">
+                {mine.map((item) => (
+                  <MyProjectCard key={item.project.id} data={item} />
+                ))}
+              </div>
+            ) : (
+              <CreateProjectCard disabled={viewer.isSuspended} />
+            )}
           </section>
+
+          {mine.length > 0 && !viewer.isSuspended && (
+            <details className="group">
+              <summary className="inline-flex cursor-pointer list-none items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold hover:border-foreground/40 [&::-webkit-details-marker]:hidden">
+                <Plus className="h-4 w-4" /> Créer un autre projet
+              </summary>
+              <div className="mt-4">
+                <CreateProjectCard disabled={false} />
+              </div>
+            </details>
+          )}
         </div>
 
         <aside>
@@ -140,8 +159,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   );
 }
 
-function MyProjectCard({ data }: { data: NonNullable<Awaited<ReturnType<typeof getMyProject>>> }) {
-  const { project, role } = data;
+function MyProjectCard({ data }: { data: MyProject }) {
+  const { project, role, team_title } = data;
   const timeline = computeTimeline(project.starts_on, project.ends_on);
   const base = `/p/${project.slug}`;
   return (
@@ -152,20 +171,20 @@ function MyProjectCard({ data }: { data: NonNullable<Awaited<ReturnType<typeof g
             {STATUS_LABEL[project.status]}
           </Badge>
           <Badge>{PLATFORM_LABEL[project.platform]}</Badge>
-          <Badge tone="spark">{MEMBER_ROLE_LABEL[role]}</Badge>
+          <Badge tone="spark">{team_title || MEMBER_ROLE_LABEL[role]}</Badge>
         </div>
         <h3 className="mt-3 font-display text-2xl font-extrabold">{project.title}</h3>
         {project.pitch && <p className="mt-1 text-muted">{project.pitch}</p>}
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <div>
-            <ProgressBar value={project.progress} label="Avancée du projet" />
+            <ProgressBar value={project.progress} label={`Avancée de ${project.title}`} />
             <p className="mt-2 text-sm">
               <strong className="text-spark-strong">{project.progress} %</strong> d&apos;avancée
             </p>
           </div>
           <div>
-            <ProgressBar value={timeline} label="Timeline du projet" tone="ink" />
+            <ProgressBar value={timeline} label={`Timeline de ${project.title}`} tone="ink" />
             <p className="mt-2 text-sm">
               <strong>{timeline} %</strong> du temps · {daysLeft(project.ends_on)} jours restants
             </p>
@@ -195,10 +214,10 @@ function CreateProjectCard({ disabled }: { disabled: boolean }) {
   return (
     <Card className="p-6 sm:p-8">
       <SparkMark className="h-8 w-8 text-spark" />
-      <h3 className="mt-3 font-display text-xl font-extrabold">Lance le projet de ton groupe</h3>
+      <h3 className="mt-3 font-display text-xl font-extrabold">Lance le projet d&apos;un groupe</h3>
       <p className="mt-1 mb-6 text-sm text-muted">
-        Un seul membre crée le projet, puis invite les autres. Le planning de la SAÉ est prérempli : vous pourrez
-        l&apos;ajuster ensuite.
+        Un membre crée le projet, puis invite les autres. Le planning de la SAÉ est prérempli : vous pourrez
+        l&apos;ajuster ensuite. Tu peux faire partie de plusieurs projets.
       </p>
       <ActionForm action={createProject} submitLabel="Créer le projet" pendingLabel="Création…">
         <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">

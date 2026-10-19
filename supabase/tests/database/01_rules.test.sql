@@ -99,9 +99,9 @@ select is((select title from public.projects where id = :tempete), 'Table Tempê
   'un étudiant ne modifie pas le projet d''un autre groupe');
 
 select pg_temp.login(:bastien);
-select throws_ok(
+select lives_ok(
   $$ insert into public.projects (slug, title, created_by) values ('second-projet', 'Second', '00000000-0000-4000-a000-000000000003') $$,
-  '42501', null, 'un étudiant déjà membre ne crée pas un second projet');
+  'un étudiant déjà membre peut créer un second projet');
 
 select throws_ok(
   $$ update public.projects set status = 'hidden' where id = '10000000-0000-4000-a000-000000000001' $$,
