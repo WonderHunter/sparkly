@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { CommentSection } from "@/components/project/comment-section";
 import { PostCard } from "@/components/project/post-card";
 import { getViewer } from "@/lib/auth";
-import { getPostByNumber, getProjectPage, listComments } from "@/lib/data/projects";
+import { getPostByNumber, getProjectPage, listComments, redirectRenamedOrNotFound } from "@/lib/data/projects";
 
 export default async function PostPage({ params }: PageProps<"/p/[slug]/devlog/[number]">) {
   const { slug, number } = await params;
@@ -12,7 +12,7 @@ export default async function PostPage({ params }: PageProps<"/p/[slug]/devlog/[
   if (!Number.isInteger(n) || n < 1) notFound();
 
   const page = await getProjectPage(slug);
-  if (!page) notFound();
+  if (!page) return redirectRenamedOrNotFound(slug, `/devlog/${number}`);
   const post = await getPostByNumber(page.project.id, n);
   if (!post) notFound();
   const [comments, viewer] = await Promise.all([listComments(page.project.id, post.id), getViewer()]);

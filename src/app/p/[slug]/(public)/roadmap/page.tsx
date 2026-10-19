@@ -1,12 +1,11 @@
-import { notFound } from "next/navigation";
 import { PlanningTimeline } from "@/components/project/planning-timeline";
 import { ProgressBar } from "@/components/ui/misc";
-import { getProjectPage } from "@/lib/data/projects";
+import { getProjectPage, redirectRenamedOrNotFound } from "@/lib/data/projects";
 
 export default async function RoadmapPage({ params }: PageProps<"/p/[slug]/roadmap">) {
   const { slug } = await params;
   const page = await getProjectPage(slug);
-  if (!page) notFound();
+  if (!page) return redirectRenamedOrNotFound(slug, "/roadmap");
   const { project, milestones } = page;
   const done = milestones.filter((m) => m.status === "done").length;
 

@@ -6,7 +6,7 @@ import { ProjectTabs } from "@/components/project/project-tabs";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge, SparkMark } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
-import { getProjectPage, isFollowing } from "@/lib/data/projects";
+import { findRenamedSlug, getProjectPage, isFollowing } from "@/lib/data/projects";
 import { parseVideoUrl } from "@/lib/domain/video";
 import { PLATFORM_LABEL } from "@/lib/types";
 import { pluralize } from "@/lib/utils";
@@ -26,7 +26,11 @@ export async function generateMetadata({ params }: LayoutProps<"/p/[slug]">) {
 export default async function ProjectLayout({ params, children }: LayoutProps<"/p/[slug]">) {
   const { slug } = await params;
   const [page, viewer] = await Promise.all([getProjectPage(slug), getViewer()]);
-  if (!page) notFound();
+  if (!page) {
+    // Ancienne adresse d'un projet renommé : la page redirige vers la nouvelle URL.
+    if (await findRenamedSlug(slug)) return <>{children}</>;
+    notFound();
+  }
 
   const { project, members, stats } = page;
   const isMember = Boolean(viewer && members.some((m) => m.user_id === viewer.id));

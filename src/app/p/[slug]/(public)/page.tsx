@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { PlanningTimeline } from "@/components/project/planning-timeline";
 import { PostCard } from "@/components/project/post-card";
 import { TeamGrid } from "@/components/project/team-grid";
-import { getProjectPage, listPosts } from "@/lib/data/projects";
+import { getProjectPage, listPosts, redirectRenamedOrNotFound } from "@/lib/data/projects";
 import { isEmptyRichText, sanitizeRichText } from "@/lib/domain/sanitize";
 
 /**
@@ -14,7 +13,7 @@ import { isEmptyRichText, sanitizeRichText } from "@/lib/domain/sanitize";
 export default async function CampaignPage({ params }: PageProps<"/p/[slug]">) {
   const { slug } = await params;
   const page = await getProjectPage(slug);
-  if (!page) notFound();
+  if (!page) return redirectRenamedOrNotFound(slug, "");
   const { project, members, milestones } = page;
   const posts = await listPosts(project.id, { limit: 2 });
   const base = `/p/${project.slug}`;

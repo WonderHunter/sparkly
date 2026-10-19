@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Avatar, Badge } from "@/components/ui/misc";
-import { getProjectPage } from "@/lib/data/projects";
+import { getProjectPage, redirectRenamedOrNotFound } from "@/lib/data/projects";
 import { MEMBER_ROLE_LABEL } from "@/lib/types";
 
 export default async function TeamPage({ params }: PageProps<"/p/[slug]/team">) {
   const { slug } = await params;
   const page = await getProjectPage(slug);
-  if (!page) notFound();
+  if (!page) return redirectRenamedOrNotFound(slug, "/team");
 
   return (
     <div className="mx-auto max-w-3xl">

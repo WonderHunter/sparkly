@@ -309,6 +309,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_slug_history": {
+                  Row: {
+                    "changed_at": string,"project_id": string,"slug": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_at"?: string,"project_id": string,"slug": string
+                  }
+                  Update: {
+                    "changed_at"?: string,"project_id"?: string,"slug"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_slug_history_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_cards"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_slug_history_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"projects": {
                   Row: {
                     "category_id": number | null,"cover_url": string | null,"created_at": string,"created_by": string | null,"ends_on": string,"fts": unknown,"game_url": string | null,"id": string,"logo_url": string | null,"pitch": string,"platform": Database["public"]['Enums']["platform"],"progress": number,"published_at": string | null,"repo_url": string | null,"slug": string,"starts_on": string,"status": Database["public"]['Enums']["project_status"],"story": string,"title": string,"updated_at": string,"video_url": string | null
@@ -432,8 +458,16 @@ isOneToOne: false
 "my_email":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"normalize_title":
+{ Args: { "p_title": string }; Returns: string
+                           },
 "project_is_public":
 { Args: { "p_project": string }; Returns: boolean
+                           },
+"title_conflicts":
+{ Args: { "p_exclude"?: string,"p_title": string }; Returns: {
+              "is_published": boolean,"slug": string,"title": string
+            }[]
                            }
           }
           Enums: {

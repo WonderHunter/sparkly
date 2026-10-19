@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { slugify } from "@/lib/domain/slug";
 import { parseVideoUrl } from "@/lib/domain/video";
 
 const PLATFORMS = ["borne", "cocktail", "tv", "web"] as const;
@@ -13,6 +14,14 @@ const optionalUrl = z
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date invalide.");
 
+/** Adresse du projet : « Orbit Smash ! » devient « orbit-smash ». */
+export const slugSchema = z
+  .string()
+  .trim()
+  .transform((v) => slugify(v))
+  .refine((v) => v.length >= 3, "L'adresse doit faire au moins 3 caractères (lettres, chiffres, tirets).")
+  .refine((v) => /^[a-z0-9][a-z0-9-]{2,59}$/.test(v), "Utilise uniquement des lettres, chiffres et tirets.");
+
 export const createProjectSchema = z.object({
   title: z.string().trim().min(2, "Le nom du jeu doit faire au moins 2 caractères.").max(80, "80 caractères maximum."),
   platform: z.enum(PLATFORMS, { error: "Choisis une plateforme." }),
@@ -21,6 +30,7 @@ export const createProjectSchema = z.object({
 export const basicsSchema = z
   .object({
     title: z.string().trim().min(2, "Le nom du jeu doit faire au moins 2 caractères.").max(80, "80 caractères maximum."),
+    slug: slugSchema,
     pitch: z.string().trim().max(200, "200 caractères maximum."),
     platform: z.enum(PLATFORMS, { error: "Choisis une plateforme." }),
     categoryId: z

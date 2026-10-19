@@ -1,12 +1,11 @@
-import { notFound } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { EmptyState } from "@/components/ui/misc";
-import { getProjectPage, listFaqs } from "@/lib/data/projects";
+import { getProjectPage, listFaqs, redirectRenamedOrNotFound } from "@/lib/data/projects";
 
 export default async function FaqPage({ params }: PageProps<"/p/[slug]/faq">) {
   const { slug } = await params;
   const page = await getProjectPage(slug);
-  if (!page) notFound();
+  if (!page) return redirectRenamedOrNotFound(slug, "/faq");
   const faqs = await listFaqs(page.project.id);
 
   return (

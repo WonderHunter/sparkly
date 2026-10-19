@@ -42,6 +42,7 @@ export async function updateBasics(slug: string, _prev: FormState, formData: For
   const { project } = await getEditContext(slug);
   const parsed = basicsSchema.safeParse({
     title: str(formData, "title"),
+    slug: str(formData, "slug"),
     pitch: str(formData, "pitch"),
     platform: str(formData, "platform"),
     categoryId: str(formData, "categoryId"),
@@ -61,6 +62,7 @@ export async function updateBasics(slug: string, _prev: FormState, formData: For
     .from("projects")
     .update({
       title: d.title,
+      slug: d.slug,
       pitch: d.pitch,
       platform: d.platform,
       category_id: d.categoryId,
@@ -73,9 +75,19 @@ export async function updateBasics(slug: string, _prev: FormState, formData: For
       logo_url: d.logoUrl,
     })
     .eq("id", project.id);
-  if (error) return { error: "Enregistrement impossible." };
+  if (error) {
+    if (error.code === "23505") {
+      return { error: "Cette adresse est déjà prise.", fields: { slug: "Adresse déjà utilisée par un autre projet." } };
+    }
+    return { error: "Enregistrement impossible." };
+  }
 
   refresh(project.slug);
+  if (d.slug !== project.slug) {
+    // L'éditeur est à l'ancienne adresse : on bascule sur la nouvelle.
+    refresh(d.slug);
+    redirect(`/p/${d.slug}/edit/basics?saved=1`);
+  }
   return { ok: true, message: "Enregistré." };
 }
 

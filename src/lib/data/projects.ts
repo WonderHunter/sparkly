@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Faq, Member, Milestone, Platform, Post, Project, ProjectCard, PublicProfile } from "@/lib/types";
 
@@ -189,3 +190,34 @@ export async function listMyProjects(userId: string) {
 }
 
 export type MyProject = Awaited<ReturnType<typeof listMyProjects>>[number];
+
+/** Adresse actuelle d'un projet renommé (null si inconnue ou projet non visible). */
+export const findRenamedSlug = cache(async (slug: string): Promise<string | null> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("project_slug_history")
+    .select("project:projects(slug)")
+    .eq("slug", slug.toLowerCase())
+    .maybeSingle();
+  return data?.project?.slug ?? null;
+});
+
+/** Redirige (301) un ancien lien vers la nouvelle adresse, sinon 404. */
+export async function redirectRenamedOrNotFound(slug: string, subpath = ""): Promise<never> {
+  const current = await findRenamedSlug(slug);
+  if (current) permanentRedirect(`/p/${current}${subpath}`);
+  notFound();
+}
+
+export interface TitleConflict {
+  title: string;
+  slug: string | null;
+  is_published: boolean;
+}
+
+/** Autres projets portant le même nom (casse, accents et espaces ignorés). */
+export async function findTitleConflicts(title: string, excludeId?: string): Promise<TitleConflict[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("title_conflicts", { p_title: title, p_exclude: excludeId });
+  return (data ?? []) as TitleConflict[];
+}

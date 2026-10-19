@@ -29,6 +29,8 @@ Aucun argent réel : la barre de financement de Kickstarter devient la **jauge d
   - les 6 jalons du planning de la SAÉ sont créés automatiquement.
 - **Éditeur**
   - bases (visuels compressés en WebP, vidéo YouTube/Vimeo, liens, dates) ;
+  - adresse du projet personnalisable (`/p/orbit-smash`) : les anciens liens redirigent vers la nouvelle adresse, qu'aucun autre projet ne peut reprendre ;
+  - avertissement (non bloquant) quand un autre projet porte déjà le même nom, casse et accents ignorés ;
   - description (éditeur riche) ;
   - planning, devlog (brouillon ou publication), équipe, FAQ, publication.
 - **Communauté :** commentaires avec un niveau de réponse, suivi de projets, fil des projets suivis, signalements.

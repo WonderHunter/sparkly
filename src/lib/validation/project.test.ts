@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { safeNextPath } from "./auth";
-import { basicsSchema, fieldErrors, milestoneSchema, postSchema, profileSchema } from "./project";
+import { basicsSchema, fieldErrors, milestoneSchema, postSchema, profileSchema, slugSchema } from "./project";
 
 const validBasics = {
   title: "Neon Pusher",
+  slug: "neon-pusher",
   pitch: "Un coin pusher néon.",
   platform: "borne",
   categoryId: "2",
@@ -79,5 +80,17 @@ describe("safeNextPath", () => {
     [undefined, "/dashboard"],
   ])("%s -> %s", (input, expected) => {
     expect(safeNextPath(input)).toBe(expected);
+  });
+});
+
+describe("slugSchema", () => {
+  it("convertit une saisie libre en adresse valide", () => {
+    expect(slugSchema.parse("  Orbit Smash ! ")).toBe("orbit-smash");
+    expect(slugSchema.parse("Équipe Été 2027")).toBe("equipe-ete-2027");
+  });
+
+  it("refuse une adresse trop courte ou vide", () => {
+    expect(slugSchema.safeParse("ab").success).toBe(false);
+    expect(slugSchema.safeParse("!!!").success).toBe(false);
   });
 });

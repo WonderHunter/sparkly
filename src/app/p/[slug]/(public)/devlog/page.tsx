@@ -1,12 +1,11 @@
-import { notFound } from "next/navigation";
 import { PostCard } from "@/components/project/post-card";
 import { EmptyState } from "@/components/ui/misc";
-import { getProjectPage, listPosts } from "@/lib/data/projects";
+import { getProjectPage, listPosts, redirectRenamedOrNotFound } from "@/lib/data/projects";
 
 export default async function DevlogPage({ params }: PageProps<"/p/[slug]/devlog">) {
   const { slug } = await params;
   const page = await getProjectPage(slug);
-  if (!page) notFound();
+  if (!page) return redirectRenamedOrNotFound(slug, "/devlog");
   const posts = await listPosts(page.project.id);
 
   return (
