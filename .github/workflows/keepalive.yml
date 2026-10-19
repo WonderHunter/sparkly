@@ -1,0 +1,32 @@
+name: Keep Supabase awake
+
+# Le plan gratuit de Supabase met en pause un projet après 7 jours sans activité.
+# Une petite lecture quotidienne suffit à l'éviter.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [production, preview]
+    environment: ${{ matrix.target }}
+    steps:
+      - name: Lecture légère de l'API
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then echo "SUPABASE_URL non configurée pour ${{ matrix.target }}, rien à faire."; exit 0; fi
+          curl --fail --silent --show-error \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            "$SUPABASE_URL/rest/v1/categories?select=id&limit=1" > /dev/null
+          echo "Supabase ${{ matrix.target }} actif."

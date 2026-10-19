@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ✦ Sparkly
 
-## Getting Started
+> *Every idea starts with a spark.*
 
-First, run the development server:
+Plateforme façon Kickstarter pour la SAÉ « jeu d'arcade » du BUT MMI. Chaque **groupe** publie la page de son projet et montre son **avancée** :
+- planning de jalons ;
+- devlog (« Mise à jour n°X ») ;
+- retours de la promo et des profs.
+
+Aucun argent réel : la barre de financement de Kickstarter devient la **jauge d'avancée**.
+
+## Fonctionnalités
+
+- **Vue publique**
+  - accueil, page *Découvrir* (recherche, genres, plateforme, état, tris) et profils publics ;
+  - page projet à onglets : Campagne, Planning, Actualités, FAQ, Commentaires, Équipe.
+- **Informations minimales du gabarit pédagogique**
+  - logo, nom et phrase d'accroche ;
+  - vidéo ;
+  - deux jauges : **Avancée du projet** (jalons) et **Timeline du projet** (temps écoulé, avec la date de fin) ;
+  - description, équipe, planning, dernières actualités.
+- **Comptes**
+  - connexion sans mot de passe, par code à 6 chiffres reçu par e-mail ;
+  - réservée aux adresses `@etudiant.univ-reims.fr` (rôle étudiant) et `@univ-reims.fr` (rôle enseignant) ;
+  - la restriction est appliquée **en base** par un hook Supabase Auth, impossible à contourner par l'API.
+- **Un projet par groupe**
+  - le créateur devient chef·fe de projet et invite ses camarades par e-mail ;
+  - les 6 jalons du planning de la SAÉ sont créés automatiquement.
+- **Éditeur**
+  - bases (visuels compressés en WebP, vidéo YouTube/Vimeo, liens, dates) ;
+  - description (éditeur riche) ;
+  - planning, devlog (brouillon ou publication), équipe, FAQ, publication.
+- **Communauté :** commentaires avec un niveau de réponse, suivi de projets, fil des projets suivis, signalements.
+- **Administration**
+  - statistiques et projets en retard sur le planning ;
+  - modération (masquer un projet, un commentaire), signalements ;
+  - comptes (rôle, suspension, suppression) ;
+  - réglages (dates de la promo, domaines autorisés, genres).
+
+## Stack
+
+| Couche | Choix |
+|---|---|
+| Front et serveur | Next.js 16 (App Router, Server Components, Server Actions), React 19, TypeScript |
+| UI | Tailwind CSS 4, lucide-react, Tiptap (éditeur riche) |
+| Données | Supabase : Postgres, Auth (OTP e-mail), Storage, Row Level Security |
+| Validation | Zod (client et serveur), `sanitize-html` pour le contenu riche |
+| Tests | Vitest + Testing Library (unitaires, composants, intégration), pgTAP (base), Playwright (E2E) |
+| CI/CD | GitHub Actions et Vercel |
+
+## Démarrer en local
+
+Prérequis : Node 22, pnpm, Docker.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+pnpm db:start          # Supabase local : migrations + données de démo
+cp .env.example .env.local   # puis recopier les clés affichées par db:start
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Application : http://localhost:3000
+- Supabase Studio : http://127.0.0.1:54323
+- E-mails de connexion (Mailpit) : http://127.0.0.1:54324
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Comptes de démo (seed local uniquement) : `alice.demo@etudiant.univ-reims.fr` (étudiante, cheffe de *Neon Pusher*), `prof.demo@univ-reims.fr` (enseignant) et `admin.demo@univ-reims.fr` (admin). Le code de connexion arrive dans Mailpit.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tests
 
-## Learn More
+| Commande | Contenu |
+|---|---|
+| `pnpm test` | Tests unitaires et de composants (logique métier, validation, blocs de la page projet) |
+| `pnpm test:coverage` | Les mêmes, avec couverture |
+| `pnpm test:db` | Tests pgTAP : RLS, triggers (avancée, numérotation des devlogs, jalons par défaut), hook de domaine |
+| `pnpm test:integration` | Vraie API Supabase locale : connexion par code, cycle de vie d'un projet, invitations |
+| `pnpm test:e2e` | Playwright sur le build de production : parcours public, parcours étudiant complet, administration |
 
-To learn more about Next.js, take a look at the following resources:
+Les tests d'intégration et E2E nécessitent `pnpm db:start` et les variables de `.env.local` exportées dans le shell.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/                    routes (App Router)
+    (auth)/login          connexion par code
+    p/[slug]/(public)/    page projet et ses onglets
+    p/[slug]/edit/        éditeur du groupe
+    dashboard/ settings/ u/[username]/ admin/
+  components/             ui/, project/, editor/, layout/, admin/
+  lib/
+    domain/               logique pure testée (avancée, timeline, e-mails, slugs, vidéos, assainissement)
+    validation/           schémas Zod
+    data/                 lectures côté serveur
+    supabase/             clients serveur, navigateur et admin, types générés
+supabase/
+  migrations/             schéma, triggers, RLS, hook Auth, stockage
+  tests/database/         tests pgTAP
+  seed.sql                données de démo (local uniquement)
+tests/                    intégration et E2E
+```
 
-## Deploy on Vercel
+La sécurité repose sur la base, pas sur l'interface :
+- chaque table est protégée par des règles RLS ;
+- l'avancée et la numérotation des devlogs sont calculées par des triggers ;
+- les actions serveur revérifient les droits ;
+- la clé `service_role` ne sert qu'à la suppression de comptes par un admin, côté serveur.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## CI/CD
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Workflow | Déclencheur | Rôle |
+|---|---|---|
+| `ci.yml` | PR et push sur `main` | Lint, types, tests unitaires et couverture ; Supabase local puis pgTAP, intégration et E2E |
+| `deploy.yml` | CI verte | PR : preview Vercel et Supabase de test. `main` : migrations et production |
+| `keepalive.yml` | Chaque jour | Évite la mise en pause des projets Supabase gratuits |
+| `backup.yml` | Chaque semaine | Dump chiffré de la production (artefact privé de 30 jours) |
+
+Le déploiement Git automatique de Vercel est désactivé (`vercel.json`) : seule la CI déploie.
+
+### Secrets et variables à configurer (environnements GitHub `production` et `preview`)
+
+| Nom | Type | Usage |
+|---|---|---|
+| `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | secrets | Déploiement Vercel |
+| `SUPABASE_ACCESS_TOKEN` | secret | CLI Supabase |
+| `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD` | secrets | Migrations (un projet par environnement) |
+| `SUPABASE_DB_URL`, `BACKUP_PASSPHRASE` | secrets (production) | Sauvegardes |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | variables | Keep-alive |
+
+Côté Vercel : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` et `NEXT_PUBLIC_SITE_URL`.
+
+Côté Supabase hébergé, à faire une fois par projet :
+- activer le hook *Before User Created* sur `public.hook_before_user_created` ;
+- reprendre le modèle d'e-mail `supabase/templates/otp.html` ;
+- configurer un SMTP (Brevo ou Resend : l'expéditeur intégré n'envoie que quelques e-mails par heure) ;
+- renseigner l'URL du site.
+
+## Conventions
+
+- Messages de commit au format Conventional Commits (`feat:`, `fix:`, `test:`…).
+- `main` est protégée : on passe par une PR avec la CI verte.
