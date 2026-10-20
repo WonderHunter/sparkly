@@ -442,6 +442,9 @@ isOneToOne: false
             "accept_invitation":
 { Args: { "p_invitation": string }; Returns: string
                            },
+"admin_bootstrap_emails":
+{ Args: Record<PropertyKey, never>; Returns: (string)[]
+                           },
 "can_edit_project":
 { Args: { "p_project": string }; Returns: boolean
                            },
@@ -509,6 +512,9 @@ isOneToOne: false
 { Args: { "p_exclude"?: string,"p_title": string }; Returns: {
               "is_published": boolean,"slug": string,"title": string
             }[]
+                           },
+"transfer_ownership":
+{ Args: { "p_my_role"?: Database["public"]['Enums']["member_role"],"p_new_owner": string,"p_project": string }; Returns: undefined
                            }
           }
           Enums: {

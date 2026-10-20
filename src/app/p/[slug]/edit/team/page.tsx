@@ -1,17 +1,18 @@
 import { Mail, UserMinus, X } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { EditorSection } from "@/components/editor/editor-section";
-import { Field, Input } from "@/components/ui/form";
+import { Field, FormMessage, Input } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { Avatar, Badge } from "@/components/ui/misc";
 import { getEditContext } from "@/lib/data/editor";
 import { getProjectPage } from "@/lib/data/projects";
 import { createClient } from "@/lib/supabase/server";
 import { MEMBER_ROLE_LABEL } from "@/lib/types";
-import { cancelInvitation, inviteMember, removeMember, updateMember } from "../actions";
+import { cancelInvitation, inviteMember, removeMember, transferOwnership, updateMember } from "../actions";
 
-export default async function TeamTab({ params }: PageProps<"/p/[slug]/edit/team">) {
+export default async function TeamTab({ params, searchParams }: PageProps<"/p/[slug]/edit/team">) {
   const { slug } = await params;
+  const { relais } = await searchParams;
   const { project, viewer, isOwner } = await getEditContext(slug);
   const page = await getProjectPage(project.slug);
   const supabase = await createClient();
@@ -20,9 +21,11 @@ export default async function TeamTab({ params }: PageProps<"/p/[slug]/edit/team
     .select("*")
     .eq("project_id", project.id)
     .order("created_at");
+  const successors = (page?.members ?? []).filter((m) => m.role !== "owner" && m.user_id !== viewer.id);
 
   return (
     <div className="space-y-6">
+      {relais === "ok" && !isOwner && <FormMessage tone="success">C&apos;est fait : tu n&apos;es plus chef·fe de ce projet.</FormMessage>}
       <EditorSection title="Équipe" description="Chaque membre affiche sa photo, son nom et son rôle dans l'équipe sur la page du projet.">
         <ul className="divide-y divide-border">
           {page?.members.map((m) => (
@@ -100,6 +103,43 @@ export default async function TeamTab({ params }: PageProps<"/p/[slug]/edit/team
           </div>
         )}
       </EditorSection>
+
+      {isOwner && successors.length > 0 && (
+        <EditorSection
+          title="Passer le relais"
+          description="Confie le rôle de chef·fe de projet à un autre membre. Tu restes dans l'équipe, mais tu ne pourras plus supprimer le projet ni changer les rôles."
+        >
+          <ActionForm action={transferOwnership.bind(null, project.slug)} submitLabel="Passer le relais" pendingLabel="Transfert…">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Nouveau ou nouvelle chef·fe" htmlFor="newOwner">
+                <Select
+                  id="newOwner"
+                  name="newOwner"
+                  placeholder="Choisir un membre"
+                  options={successors.map((m) => ({ value: m.user_id, label: m.profile.display_name, hint: m.team_title || MEMBER_ROLE_LABEL[m.role] }))}
+                />
+                <FieldError name="newOwner" />
+              </Field>
+              <Field label="Ton nouveau profil" htmlFor="myRole">
+                <Select
+                  id="myRole"
+                  name="myRole"
+                  defaultValue="dev"
+                  options={[
+                    { value: "dev", label: "Dev" },
+                    { value: "crea", label: "Créa / Com" },
+                  ]}
+                />
+              </Field>
+            </div>
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" name="confirm" className="mt-0.5 h-4 w-4 accent-spark" />
+              <span>Je confirme : je ne serai plus chef·fe de ce projet.</span>
+            </label>
+            <FieldError name="confirm" />
+          </ActionForm>
+        </EditorSection>
+      )}
     </div>
   );
 }

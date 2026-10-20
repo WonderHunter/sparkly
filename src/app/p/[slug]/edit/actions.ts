@@ -279,6 +279,25 @@ export async function removeMember(slug: string, userId: string) {
   if (userId === viewer.id) redirect("/dashboard");
 }
 
+export async function transferOwnership(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const { project, isOwner } = await getEditContext(slug);
+  if (!isOwner) return { error: "Seul·e le ou la chef·fe de projet peut passer le relais." };
+  const newOwner = str(formData, "newOwner");
+  const myRole = str(formData, "myRole");
+  if (!newOwner) return { error: "Choisis la personne qui reprend le projet.", fields: { newOwner: "Choisis un membre." } };
+  if (myRole !== "dev" && myRole !== "crea") return { error: "Choisis ton nouveau rôle." };
+  if (formData.get("confirm") !== "on") {
+    return { error: "Coche la case pour confirmer.", fields: { confirm: "Confirmation requise." } };
+  }
+  const supabase = await createClient();
+  // La base vérifie à nouveau que l'appelant est chef·fe et que la personne est membre.
+  const { error } = await supabase.rpc("transfer_ownership", { p_project: project.id, p_new_owner: newOwner, p_my_role: myRole });
+  if (error) return { error: error.code === "P0002" ? "Cette personne ne fait pas partie de l'équipe." : "Passage de relais impossible." };
+  refresh(project.slug);
+  // La section disparaît une fois le relais passé : le message s'affiche en bandeau.
+  redirect(`/p/${project.slug}/edit/team?relais=ok`);
+}
+
 // ---------------------------------------------------------------------------
 // FAQ
 // ---------------------------------------------------------------------------

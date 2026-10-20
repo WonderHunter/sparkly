@@ -77,6 +77,10 @@ describe("safeNextPath", () => {
     ["https://evil.com", "/dashboard"],
     ["//evil.com", "/dashboard"],
     ["/\\evil.com", "/dashboard"],
+    ["/\t/evil.com", "/dashboard"],
+    ["/\n/evil.com", "/dashboard"],
+    ["/p/neon?tab=devlog#top", "/p/neon?tab=devlog#top"],
+    ["/../../etc", "/etc"],
     [undefined, "/dashboard"],
   ])("%s -> %s", (input, expected) => {
     expect(safeNextPath(input)).toBe(expected);

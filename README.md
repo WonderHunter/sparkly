@@ -24,7 +24,7 @@ Aucun argent réel : la barre de financement de Kickstarter devient la **jauge d
   - réservée aux adresses `@etudiant.univ-reims.fr` (rôle étudiant) et `@univ-reims.fr` (rôle enseignant) ;
   - la restriction est appliquée **en base** par un hook Supabase Auth, impossible à contourner par l'API.
 - **Un projet par groupe, plusieurs projets par personne**
-  - le créateur devient chef·fe de projet et invite ses camarades par e-mail ;
+  - le créateur devient chef·fe de projet et invite ses camarades par e-mail ; il ou elle peut ensuite passer le relais à un autre membre (onglet Équipe) ;
   - une même personne peut faire partie de plusieurs groupes, avec un rôle différent dans chacun ;
   - les 6 jalons du planning de la SAÉ sont créés automatiquement.
 - **Éditeur**

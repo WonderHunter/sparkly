@@ -12,8 +12,13 @@ import { addCategory, addDomain, removeCategory, removeDomain, updateFundingSett
 export default async function AdminSettings() {
   await requireAdmin();
   const supabase = await createClient();
-  const [{ data: settings }, { data: domains }, { data: categories }] = await Promise.all([
-    supabase.from("app_settings").select("*").single(),
+  const [{ data: settings }, { data: adminEmails }, { data: domains }, { data: categories }] = await Promise.all([
+    supabase
+      .from("app_settings")
+      .select("school_year, default_starts_on, default_ends_on, teacher_annual_budget, funding_goal, max_projects_per_student")
+      .single(),
+    // admin_emails n'est lisible que via cette fonction réservée aux admins.
+    supabase.rpc("admin_bootstrap_emails"),
     supabase.from("allowed_email_domains").select("*").order("domain"),
     supabase.from("categories").select("*").order("position"),
   ]);
@@ -38,7 +43,7 @@ export default async function AdminSettings() {
             htmlFor="adminEmails"
             hint="Ces adresses deviennent admin à leur première connexion. Une par ligne."
           >
-            <Textarea id="adminEmails" name="adminEmails" defaultValue={settings?.admin_emails.join("\n")} className="min-h-20 font-mono text-sm" />
+            <Textarea id="adminEmails" name="adminEmails" defaultValue={(adminEmails ?? []).join("\n")} className="min-h-20 font-mono text-sm" />
           </Field>
         </ActionForm>
       </EditorSection>
