@@ -12,7 +12,7 @@ async function readOtp(email: string): Promise<string> {
     const { messages } = (await res.json()) as { messages: { ID: string }[] };
     if (messages?.[0]) {
       const msg = (await (await fetch(`${MAILPIT}/api/v1/message/${messages[0].ID}`)).json()) as { Text: string };
-      const code = msg.Text.match(/\b\d{6}\b/)?.[0];
+      const code = msg.Text.match(/\b\d{6,10}\b/)?.[0];
       if (code) return code;
     }
     await new Promise((r) => setTimeout(r, 250));
@@ -27,7 +27,7 @@ export async function login(page: Page, email: string, next?: string) {
   await page.getByLabel("Adresse e-mail universitaire").fill(email);
   await page.getByRole("button", { name: "Recevoir mon code" }).click();
   await expect(page.getByText(`Code envoyé à ${email}`)).toBeVisible();
-  await page.getByLabel("Code à 6 chiffres").fill(await readOtp(email));
+  await page.getByLabel("Code reçu par e-mail").fill(await readOtp(email));
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.waitForURL((url) => !url.pathname.startsWith("/login"));
 }

@@ -51,14 +51,14 @@ export function LoginForm({ next }: { next: string }) {
       <form action={checkCode} className="space-y-4" noValidate>
         <input type="hidden" name="email" value={codeStep.email} />
         <input type="hidden" name="next" value={next} />
-        <Field label="Code à 6 chiffres" htmlFor="code" error={error}>
+        <Field label="Code reçu par e-mail" htmlFor="code" error={error}>
           <Input
             id="code"
             name="code"
             inputMode="numeric"
             autoComplete="one-time-code"
-            pattern="\d{6}"
-            maxLength={6}
+            pattern="\d{6,10}"
+            maxLength={12}
             placeholder="123456"
             className="text-center font-mono text-2xl tracking-[0.5em]"
             aria-invalid={Boolean(error)}

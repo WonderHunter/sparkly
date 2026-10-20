@@ -26,7 +26,7 @@ export async function readOtp(email: string): Promise<string> {
     if (messages?.[0]) {
       const msg = await fetch(`${base}/api/v1/message/${messages[0].ID}`);
       const { Text } = (await msg.json()) as { Text: string };
-      const code = Text.match(/\b\d{6}\b/)?.[0];
+      const code = Text.match(/\b\d{6,10}\b/)?.[0];
       if (code) return code;
     }
     await new Promise((r) => setTimeout(r, 250));

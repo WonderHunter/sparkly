@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { safeNextPath } from "./auth";
+import { otpSchema, safeNextPath } from "./auth";
 import { basicsSchema, fieldErrors, milestoneSchema, postSchema, profileSchema, slugSchema } from "./project";
 
 const validBasics = {
@@ -92,5 +92,19 @@ describe("slugSchema", () => {
   it("refuse une adresse trop courte ou vide", () => {
     expect(slugSchema.safeParse("ab").success).toBe(false);
     expect(slugSchema.safeParse("!!!").success).toBe(false);
+  });
+});
+
+describe("otpSchema", () => {
+  it("accepte les codes de 6 à 10 chiffres, espaces ignorés", () => {
+    expect(otpSchema.parse("123456")).toBe("123456");
+    expect(otpSchema.parse("7463 0235")).toBe("74630235");
+    expect(otpSchema.parse(" 1234567890 ")).toBe("1234567890");
+  });
+
+  it("refuse un code trop court, trop long ou non numérique", () => {
+    expect(otpSchema.safeParse("12345").success).toBe(false);
+    expect(otpSchema.safeParse("12345678901").success).toBe(false);
+    expect(otpSchema.safeParse("12a456").success).toBe(false);
   });
 });

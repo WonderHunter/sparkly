@@ -13,10 +13,11 @@ export const emailSchema = (allowedDomains: readonly string[]) =>
       `Sparkly est réservé aux adresses ${allowedDomains.map((d) => `@${d}`).join(" et ")}.`,
     );
 
+// Supabase autorise des codes de 6 à 10 chiffres selon le réglage « Email OTP Length ».
 export const otpSchema = z
   .string()
-  .trim()
-  .regex(/^\d{6}$/, "Le code contient 6 chiffres.");
+  .transform((v) => v.replace(/\s+/g, ""))
+  .pipe(z.string().regex(/^\d{6,10}$/, "Recopie le code reçu par e-mail (6 à 10 chiffres)."));
 
 /** N'accepte qu'un chemin interne pour éviter les redirections ouvertes. */
 export function safeNextPath(next: unknown, fallback = "/dashboard"): string {
