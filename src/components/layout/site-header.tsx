@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LayoutDashboard, LogOut, Search, Settings, Shield, User } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
+import { AccountMenu } from "@/components/layout/account-menu";
 import { ButtonLink } from "@/components/ui/button";
 import { Avatar, Logo } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
@@ -43,11 +44,14 @@ export async function SiteHeader() {
         </form>
 
         {viewer ? (
-          <details className="group relative ml-auto sm:ml-0">
-            <summary className="flex cursor-pointer list-none items-center rounded-full ring-spark/40 group-open:ring-2 [&::-webkit-details-marker]:hidden">
-              <Avatar name={viewer.profile.display_name} src={viewer.profile.avatar_url} size="sm" />
-              <span className="sr-only">Menu du compte</span>
-            </summary>
+          <AccountMenu
+            trigger={
+              <summary className="flex cursor-pointer list-none items-center rounded-full ring-spark/40 group-open:ring-2 [&::-webkit-details-marker]:hidden">
+                  <Avatar name={viewer.profile.display_name} src={viewer.profile.avatar_url} size="sm" />
+                  <span className="sr-only">Menu du compte</span>
+                </summary>
+            }
+          >
             <div className="absolute right-0 mt-2 w-60 overflow-hidden rounded-2xl border border-border bg-surface p-1.5 shadow-xl">
               <div className="px-3 py-2">
                 <p className="truncate text-sm font-semibold">{viewer.profile.display_name}</p>
@@ -78,7 +82,7 @@ export async function SiteHeader() {
                 </button>
               </form>
             </div>
-          </details>
+          </AccountMenu>
         ) : (
           <ButtonLink href="/login" variant="secondary" size="sm" className="ml-auto sm:ml-0">
             Se connecter
