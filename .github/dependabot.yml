@@ -2,13 +2,20 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    # Gitflow : les mises à jour passent par develop avant une release.
+    target-branch: develop
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # Les types Node suivent la version de Node utilisée (22 en CI et sur Vercel).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: monthly

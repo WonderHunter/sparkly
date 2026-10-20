@@ -121,8 +121,8 @@ La sécurité repose sur la base, pas sur l'interface :
 
 | Workflow | Déclencheur | Rôle |
 |---|---|---|
-| `ci.yml` | PR et push sur `main` | Lint, types, tests unitaires et couverture ; Supabase local puis pgTAP, intégration et E2E |
-| `deploy.yml` | CI verte | PR : preview Vercel et Supabase de test. `main` : migrations et production |
+| `ci.yml` | PR, push sur `develop` et `main` | Lint, types, tests unitaires et couverture ; Supabase local puis pgTAP, intégration et E2E |
+| `deploy.yml` | CI verte | PR et `develop` : preview Vercel et Supabase de test. `main` : migrations et production |
 | `keepalive.yml` | Chaque jour | Évite la mise en pause des projets Supabase gratuits |
 | `backup.yml` | Chaque semaine | Dump chiffré de la production (artefact privé de 30 jours) |
 
@@ -149,4 +149,23 @@ Côté Supabase hébergé, à faire une fois par projet :
 ## Conventions
 
 - Messages de commit au format Conventional Commits (`feat:`, `fix:`, `test:`…).
-- `main` est protégée : on passe par une PR avec la CI verte.
+
+### Branches (gitflow)
+
+| Branche | Part de | Revient dans | Rôle |
+|---|---|---|---|
+| `main` | — | — | Production (https://sparkly.lbalocchi.fr). Ne reçoit que des `release/*` et `hotfix/*` |
+| `develop` | `main` | — | Intégration, branche par défaut. Chaque push part en preview |
+| `feature/<sujet>` | `develop` | `develop` (PR) | Une fonctionnalité ou un correctif non urgent |
+| `release/<version>` | `develop` | `main` puis `develop` | Gel avant mise en production (numéro de version, derniers correctifs) |
+| `hotfix/<sujet>` | `main` | `main` puis `develop` | Correctif urgent en production |
+
+`main` et `develop` sont protégées : pas de push direct ni de force push, merge uniquement par PR avec la CI verte. Les mises à jour Dependabot visent `develop`.
+
+```bash
+git switch develop && git pull
+git switch -c feature/ma-fonctionnalite
+# … commits …
+git push -u origin feature/ma-fonctionnalite
+gh pr create --base develop
+```

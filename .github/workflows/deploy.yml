@@ -1,7 +1,7 @@
 name: Deploy
 
 # Déploie uniquement quand la CI est verte :
-# - PR    -> preview Vercel + projet Supabase de test (« staging »)
+# - PR et develop -> preview Vercel + projet Supabase de test (« staging »)
 # - main  -> production Vercel + migrations sur le projet Supabase de production
 #            (push ou relance manuelle de la CI)
 on:
