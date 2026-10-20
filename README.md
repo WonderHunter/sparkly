@@ -138,7 +138,7 @@ Le déploiement Git automatique de Vercel est désactivé (`vercel.json`) : seul
 | `BACKUP_PASSPHRASE` | secret (production) | Chiffrement des sauvegardes |
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | variables (par environnement) | Keep-alive |
 
-Côté Vercel : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` et `NEXT_PUBLIC_SITE_URL`.
+Côté Vercel : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, et `NEXT_PUBLIC_SITE_URL` en production uniquement (`https://sparkly.lbalocchi.fr`). Les previews reprennent l'adresse réelle de la requête : la CI construit le site avant l'envoi à Vercel, l'URL du déploiement n'est donc pas connue au build.
 
 Côté Supabase hébergé, à faire une fois par projet :
 - activer le hook *Before User Created* sur `public.hook_before_user_created` ;

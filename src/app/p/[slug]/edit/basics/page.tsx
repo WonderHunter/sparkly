@@ -6,7 +6,7 @@ import { SlugField } from "@/components/editor/slug-field";
 import { Field, FormMessage, Input, Textarea } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { findTitleConflicts, listCategories } from "@/lib/data/projects";
-import { SITE_URL } from "@/lib/env";
+import { getSiteUrl } from "@/lib/site-url";
 import { getEditContext } from "@/lib/data/editor";
 import { PLATFORM_LABEL } from "@/lib/types";
 import { EditorSection } from "@/components/editor/editor-section";
@@ -16,7 +16,7 @@ export default async function BasicsTab({ params, searchParams }: PageProps<"/p/
   const { slug } = await params;
   const { saved } = await searchParams;
   const [{ project }, categories] = await Promise.all([getEditContext(slug), listCategories()]);
-  const conflicts = await findTitleConflicts(project.title, project.id);
+  const [conflicts, siteUrl] = await Promise.all([findTitleConflicts(project.title, project.id), getSiteUrl()]);
 
   return (
     <EditorSection title="Les bases" description="Ce qu'on voit en premier : le nom du jeu, son accroche, ses visuels et ses liens.">
@@ -56,7 +56,7 @@ export default async function BasicsTab({ params, searchParams }: PageProps<"/p/
           <FieldError name="title" />
         </Field>
 
-        <SlugField defaultValue={project.slug} siteUrl={SITE_URL} />
+        <SlugField defaultValue={project.slug} siteUrl={siteUrl} />
 
         <Field label="Phrase d'accroche" htmlFor="pitch" hint="Explique le concept du jeu et donne envie d'y jouer (200 caractères max).">
           <Textarea id="pitch" name="pitch" defaultValue={project.pitch} maxLength={200} className="min-h-20" />
