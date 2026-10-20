@@ -107,3 +107,7 @@ insert into public.follows (user_id, project_id) values
   ('00000000-0000-4000-a000-000000000005', '10000000-0000-4000-a000-000000000001'),
   ('00000000-0000-4000-a000-000000000006', '10000000-0000-4000-a000-000000000001'),
   ('00000000-0000-4000-a000-000000000002', '10000000-0000-4000-a000-000000000002');
+
+-- Financement fictif : le prof de démo soutient Neon Pusher (budget annuel : 120 000 €).
+insert into public.investments (project_id, investor_id, amount, school_year)
+values ('10000000-0000-4000-a000-000000000001', '00000000-0000-4000-a000-000000000001', 6000, public.current_school_year());

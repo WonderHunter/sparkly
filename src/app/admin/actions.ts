@@ -174,3 +174,39 @@ export async function removeCategory(categoryId: number) {
   await supabase.from("categories").delete().eq("id", categoryId);
   revalidatePath("/admin/settings");
 }
+
+// ---------------------------------------------------------------------------
+// Financement et limite de projets (admin)
+// ---------------------------------------------------------------------------
+const fundingSettingsSchema = z.object({
+  budget: z.coerce.number().int("Montant entier.").min(0, "Le budget ne peut pas être négatif.").max(10_000_000),
+  goal: z.coerce.number().int("Montant entier.").min(1, "L'objectif doit être positif.").max(10_000_000),
+  maxProjects: z
+    .string()
+    .trim()
+    .transform((v) => (v === "" ? null : Number(v)))
+    .refine((v) => v === null || (Number.isInteger(v) && v >= 1 && v <= 20), "Entre 1 et 20, ou vide pour illimité."),
+});
+
+export async function updateFundingSettings(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const parsed = fundingSettingsSchema.safeParse({
+    budget: formData.get("budget") ?? "",
+    goal: formData.get("goal") ?? "",
+    maxProjects: formData.get("maxProjects") ?? "",
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("app_settings")
+    .update({
+      teacher_annual_budget: parsed.data.budget,
+      funding_goal: parsed.data.goal,
+      max_projects_per_student: parsed.data.maxProjects,
+    })
+    .eq("id", true);
+  if (error) return { error: "Enregistrement impossible." };
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Réglages enregistrés." };
+}

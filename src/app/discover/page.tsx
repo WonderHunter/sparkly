@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/misc";
+import { getFundingSettings } from "@/lib/data/funding";
 import { listCategories, listProjects, type SortKey, type StateFilter } from "@/lib/data/projects";
 import { PLATFORM_LABEL, type Platform } from "@/lib/types";
 import { pluralize } from "@/lib/utils";
@@ -33,7 +34,7 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
   const state = pick(params.state, Object.keys(STATES) as StateFilter[]) ?? "all";
   const sort = pick(params.sort, Object.keys(SORTS) as SortKey[]) ?? "recent";
 
-  const projects = await listProjects({ q, category, platform, state, sort });
+  const [projects, { goal }] = await Promise.all([listProjects({ q, category, platform, state, sort }), getFundingSettings()]);
   const hasFilters = Boolean(q || category || platform || state !== "all");
 
   return (
@@ -94,7 +95,7 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
 
       <div className="mt-10">
         {projects.length > 0 ? (
-          <ProjectGrid projects={projects} />
+          <ProjectGrid projects={projects} goal={goal} />
         ) : (
           <EmptyState
             title="Aucun projet ne correspond"

@@ -3,13 +3,15 @@ import { ArrowRight, Flag, MessageSquareHeart, Rocket } from "lucide-react";
 import { ProjectGrid } from "@/components/project/project-card";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, SparkMark } from "@/components/ui/misc";
+import { getFundingSettings } from "@/lib/data/funding";
 import { listCategories, listProjects } from "@/lib/data/projects";
 
 export default async function HomePage() {
-  const [recent, advanced, categories] = await Promise.all([
+  const [recent, advanced, categories, { goal }] = await Promise.all([
     listProjects({ sort: "active", limit: 6 }),
     listProjects({ sort: "progress", limit: 3 }),
     listCategories(),
+    getFundingSettings(),
   ]);
 
   return (
@@ -42,7 +44,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <SectionHeading title="Ça bouge en ce moment" href="/discover?sort=active" />
         {recent.length > 0 ? (
-          <ProjectGrid projects={recent} />
+          <ProjectGrid projects={recent} goal={goal} />
         ) : (
           <EmptyState title="Aucun projet publié pour l'instant" action={<ButtonLink href="/dashboard">Créer le premier</ButtonLink>}>
             Les projets apparaîtront ici dès que les groupes les auront publiés.
@@ -54,7 +56,7 @@ export default async function HomePage() {
         <section className="border-y border-border bg-surface">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
             <SectionHeading title="Les plus avancés" href="/discover?sort=progress" />
-            <ProjectGrid projects={advanced} />
+            <ProjectGrid projects={advanced} goal={goal} />
           </div>
         </section>
       )}

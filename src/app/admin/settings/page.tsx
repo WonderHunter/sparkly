@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/misc";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABEL } from "@/lib/types";
-import { addCategory, addDomain, removeCategory, removeDomain, updateSettings } from "../actions";
+import { addCategory, addDomain, removeCategory, removeDomain, updateFundingSettings, updateSettings } from "../actions";
 
 export default async function AdminSettings() {
   await requireAdmin();
@@ -40,6 +40,25 @@ export default async function AdminSettings() {
           >
             <Textarea id="adminEmails" name="adminEmails" defaultValue={settings?.admin_emails.join("\n")} className="min-h-20 font-mono text-sm" />
           </Field>
+        </ActionForm>
+      </EditorSection>
+
+      <EditorSection
+        title="Financement et participation"
+        description="L'argent est fictif : chaque enseignant·e reçoit un budget annuel, remis à zéro chaque 1er septembre."
+      >
+        <ActionForm action={updateFundingSettings}>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label="Budget par enseignant·e (€ / an)" htmlFor="budget">
+              <Input id="budget" name="budget" type="number" min={0} step={1000} defaultValue={settings?.teacher_annual_budget} />
+            </Field>
+            <Field label="Objectif par projet (€)" htmlFor="goal" hint="Commun à tous les projets, dépassable.">
+              <Input id="goal" name="goal" type="number" min={1} step={500} defaultValue={settings?.funding_goal} />
+            </Field>
+            <Field label="Projets max par étudiant·e / an" htmlFor="maxProjects" hint="Créés ou rejoints. Vide = illimité.">
+              <Input id="maxProjects" name="maxProjects" type="number" min={1} max={20} defaultValue={settings?.max_projects_per_student ?? ""} placeholder="Illimité" />
+            </Field>
+          </div>
         </ActionForm>
       </EditorSection>
 

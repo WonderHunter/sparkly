@@ -2,11 +2,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { MessageCircle, Users } from "lucide-react";
 import { Badge, ProgressBar, SparkMark } from "@/components/ui/misc";
+import { FundingLine } from "./funding-panel";
 import { computeTimeline, daysLeft } from "@/lib/domain/timeline";
 import { PLATFORM_LABEL, type ProjectCard as ProjectCardData } from "@/lib/types";
 
 /** Carte projet inspirée de Kickstarter : visuel, titre, accroche, jauge et statistiques. */
-export function ProjectCard({ project, preload = false }: { project: ProjectCardData; preload?: boolean }) {
+export function ProjectCard({
+  project,
+  goal,
+  preload = false,
+}: {
+  project: ProjectCardData;
+  /** Objectif de financement commun à tous les projets (réglage admin). */
+  goal: number;
+  preload?: boolean;
+}) {
   const timeline = computeTimeline(project.starts_on!, project.ends_on!);
   const remaining = daysLeft(project.ends_on!);
 
@@ -42,7 +52,8 @@ export function ProjectCard({ project, preload = false }: { project: ProjectCard
         </h3>
         <p className="mt-1 line-clamp-2 text-sm text-muted">{project.pitch || "Pas encore d'accroche."}</p>
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto space-y-3 pt-4">
+          <FundingLine amount={project.funded_amount ?? 0} goal={goal} title={project.title ?? ""} />
           <ProgressBar value={project.progress ?? 0} label={`Avancée de ${project.title}`} size="sm" />
           <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
             <div>
@@ -76,11 +87,11 @@ export function ProjectCard({ project, preload = false }: { project: ProjectCard
   );
 }
 
-export function ProjectGrid({ projects }: { projects: ProjectCardData[] }) {
+export function ProjectGrid({ projects, goal }: { projects: ProjectCardData[]; goal: number }) {
   return (
     <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
       {projects.map((project, i) => (
-        <ProjectCard key={project.id} project={project} preload={i < 3} />
+        <ProjectCard key={project.id} project={project} goal={goal} preload={i < 3} />
       ))}
     </div>
   );

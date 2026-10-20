@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ProjectCard } from "@/components/project/project-card";
 import { Avatar, Badge, EmptyState } from "@/components/ui/misc";
+import { getFundingSettings } from "@/lib/data/funding";
 import { createClient } from "@/lib/supabase/server";
 import { MEMBER_ROLE_LABEL, ROLE_LABEL } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -35,6 +36,7 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
   const { data: cards } = ids.length
     ? await supabase.from("project_cards").select("*").in("id", ids).order("updated_at", { ascending: false })
     : { data: [] };
+  const { goal } = await getFundingSettings();
   const projects = (cards ?? []).map((card) => ({
     card,
     membership: memberships!.find((m) => m.project_id === card.id)!,
@@ -65,7 +67,7 @@ export default async function ProfilePage({ params }: PageProps<"/u/[username]">
             {projects.map(({ card, membership }) => (
               <div key={card.id}>
                 <p className="mb-3 text-sm text-muted">{membership.team_title || MEMBER_ROLE_LABEL[membership.role]}</p>
-                <ProjectCard project={card} />
+                <ProjectCard project={card} goal={goal} />
               </div>
             ))}
           </div>

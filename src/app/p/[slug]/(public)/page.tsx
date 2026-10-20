@@ -2,7 +2,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PlanningTimeline } from "@/components/project/planning-timeline";
 import { PostCard } from "@/components/project/post-card";
+import { BackersList } from "@/components/project/backers-list";
 import { TeamGrid } from "@/components/project/team-grid";
+import { listInvestments } from "@/lib/data/funding";
 import { getProjectPage, listPosts, redirectRenamedOrNotFound } from "@/lib/data/projects";
 import { isEmptyRichText, sanitizeRichText } from "@/lib/domain/sanitize";
 
@@ -15,7 +17,7 @@ export default async function CampaignPage({ params }: PageProps<"/p/[slug]">) {
   const page = await getProjectPage(slug);
   if (!page) return redirectRenamedOrNotFound(slug, "");
   const { project, members, milestones } = page;
-  const posts = await listPosts(project.id, { limit: 2 });
+  const [posts, investments] = await Promise.all([listPosts(project.id, { limit: 2 }), listInvestments(project.id)]);
   const base = `/p/${project.slug}`;
 
   return (
@@ -42,9 +44,12 @@ export default async function CampaignPage({ params }: PageProps<"/p/[slug]">) {
         </Section>
       </div>
 
-      <aside className="lg:sticky lg:top-36 lg:self-start">
+      <aside className="space-y-12 lg:sticky lg:top-36 lg:self-start">
         <Section title="Planning" more={{ href: `${base}/roadmap`, label: "Détails" }}>
           <PlanningTimeline milestones={milestones} compact />
+        </Section>
+        <Section title="Ils ont financé">
+          <BackersList investments={investments} />
         </Section>
       </aside>
     </div>

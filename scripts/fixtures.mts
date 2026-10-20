@@ -499,6 +499,25 @@ async function main() {
     await browser.close();
   }
 
+  // Financements fictifs des profs (dans la limite de leur budget annuel).
+  const { data: schoolYear } = await db.rpc("current_school_year");
+  const FUNDING: [number, string, number][] = [
+    [0, "gravity-goals", 15000], [0, "laser-mirage", 12000], [0, "orbit-smash", 8000],
+    [0, "pixel-fermier", 5000], [0, "metro-rush", 4000],
+    [1, "laser-mirage", 6000], [1, "gravity-goals", 3000], [1, "cuisine-chaos", 2500],
+    [1, "comet-runner", 1500],
+  ];
+  const { data: fixtureProjects } = await db.from("projects").select("id, slug").in("slug", PROJECTS.map((p) => p.slug));
+  for (const [teacherIndex, slug, amount] of FUNDING) {
+    const projectId = fixtureProjects?.find((p) => p.slug === slug)?.id;
+    if (!projectId) continue;
+    must(
+      await db.from("investments").insert({ project_id: projectId, investor_id: teachers[teacherIndex], amount, school_year: schoolYear as string }),
+      `financement ${slug}`,
+    );
+  }
+  console.log(`✓ ${FUNDING.length} financements de profs`);
+
   const multi = new Map<number, number>();
   for (const p of PROJECTS) for (const [m] of p.members) multi.set(m, (multi.get(m) ?? 0) + 1);
   const shared = [...multi.entries()].filter(([, n]) => n > 1).map(([i]) => STUDENTS[i][1]);

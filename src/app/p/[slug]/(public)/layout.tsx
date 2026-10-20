@@ -1,11 +1,14 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { EyeOff, FolderGit2, Gamepad2, Heart, Pencil, Users } from "lucide-react";
+import { FundForm } from "@/components/project/fund-form";
+import { FundingPanel } from "@/components/project/funding-panel";
 import { ProgressPanel } from "@/components/project/progress-panel";
 import { ProjectTabs } from "@/components/project/project-tabs";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge, SparkMark } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
+import { getFundingSettings, getTeacherBudget, listInvestments } from "@/lib/data/funding";
 import { findRenamedSlug, getProjectPage, isFollowing } from "@/lib/data/projects";
 import { parseVideoUrl } from "@/lib/domain/video";
 import { PLATFORM_LABEL } from "@/lib/types";
@@ -34,7 +37,17 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
 
   const { project, members, stats } = page;
   const isMember = Boolean(viewer && members.some((m) => m.user_id === viewer.id));
-  const following = await isFollowing(project.id, viewer?.id);
+  const isTeacher = viewer?.profile.role === "teacher" && !viewer.isSuspended;
+  const [following, investments, { goal }, budget] = await Promise.all([
+    isFollowing(project.id, viewer?.id),
+    listInvestments(project.id),
+    getFundingSettings(),
+    isTeacher ? getTeacherBudget(viewer.id) : Promise.resolve(null),
+  ]);
+  const funded = investments.reduce((sum, i) => sum + i.amount, 0);
+  const myInvestment = viewer ? investments.find((i) => i.investor?.id === viewer.id && i.school_year === budget?.schoolYear) : undefined;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date());
+  const fundable = project.status === "published" && project.ends_on >= today;
   const video = parseVideoUrl(project.video_url);
   const base = `/p/${project.slug}`;
 
@@ -90,6 +103,18 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
         </div>
 
         <aside className="flex flex-col gap-6">
+          <FundingPanel amount={funded} goal={goal} backers={investments.length} />
+          {isTeacher && budget && (
+            <FundForm
+              slug={project.slug}
+              projectId={project.id}
+              current={myInvestment ? { id: myInvestment.id, amount: myInvestment.amount } : null}
+              remaining={budget.remaining}
+              schoolYear={budget.schoolYear}
+              fundable={fundable}
+            />
+          )}
+          <hr className="border-border" />
           <ProgressPanel progress={project.progress} startsOn={project.starts_on} endsOn={project.ends_on} />
 
           <dl className="grid grid-cols-3 gap-2 border-y border-border py-4 text-center">

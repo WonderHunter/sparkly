@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth";
+import { parseEuros } from "@/lib/domain/funding";
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionState = { ok?: boolean; error?: string; message?: string };
@@ -114,4 +115,55 @@ export async function report(_prev: ActionState, formData: FormData): Promise<Ac
   });
   if (error) return { error: "Le signalement n'a pas pu être envoyé." };
   return { ok: true, message: "Merci, l'équipe pédagogique va regarder." };
+}
+
+// ---------------------------------------------------------------------------
+// Financement fictif par les enseignant·es
+// ---------------------------------------------------------------------------
+const FUNDING_ERRORS = new Set(["SP002", "SP003"]);
+
+/** Crée ou modifie le financement de l'enseignant·e connecté·e pour ce projet. */
+export async function invest(slug: string, projectId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
+  const viewer = await getViewer();
+  if (!viewer) return { error: "Connecte-toi pour financer un projet." };
+  if (viewer.profile.role !== "teacher") return { error: "Seul·es les enseignant·es peuvent financer un projet." };
+  if (!uuid.safeParse(projectId).success) return { error: "Projet invalide." };
+
+  const amount = parseEuros(String(formData.get("amount") ?? ""));
+  if (!Number.isInteger(amount) || amount < 1) return { error: "Indique un montant en euros (nombre entier)." };
+
+  const supabase = await createClient();
+  const { data: schoolYear } = await supabase.rpc("current_school_year");
+  const { data: existing } = await supabase
+    .from("investments")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("investor_id", viewer.id)
+    .eq("school_year", schoolYear as string)
+    .maybeSingle();
+
+  const { error } = existing
+    ? await supabase.from("investments").update({ amount }).eq("id", existing.id)
+    : await supabase
+        .from("investments")
+        .insert({ project_id: projectId, investor_id: viewer.id, amount, school_year: schoolYear as string });
+
+  if (error) {
+    // Les règles (budget, rôle, projet en cours) sont vérifiées en base.
+    return { error: FUNDING_ERRORS.has(error.code ?? "") ? error.message : "Le financement n'a pas pu être enregistré." };
+  }
+  revalidatePath(`/p/${slug}`, "layout");
+  revalidatePath("/discover");
+  revalidatePath("/dashboard");
+  return { ok: true, message: existing ? "Financement mis à jour." : "Merci pour ton soutien !" };
+}
+
+export async function withdrawInvestment(slug: string, investmentId: string) {
+  const viewer = await getViewer();
+  if (!viewer || !uuid.safeParse(investmentId).success) return;
+  const supabase = await createClient();
+  await supabase.from("investments").delete().eq("id", investmentId);
+  revalidatePath(`/p/${slug}`, "layout");
+  revalidatePath("/discover");
+  revalidatePath("/dashboard");
 }

@@ -125,10 +125,12 @@ describe("ProjectCard", () => {
     comments_count: 5,
     posts_count: 4,
     last_post_at: null,
+    funded_amount: 4500,
+    backers_count: 2,
   };
 
   it("montre le titre, l'accroche, l'avancée et les compteurs", () => {
-    render(<ProjectCard project={card} />);
+    render(<ProjectCard project={card} goal={10000} />);
     expect(screen.getByRole("link", { name: "Neon Pusher" })).toHaveAttribute("href", "/p/neon-pusher");
     expect(screen.getByText("Un coin pusher néon.")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Avancée de Neon Pusher" })).toHaveAttribute("aria-valuenow", "42");
@@ -136,5 +138,8 @@ describe("ProjectCard", () => {
     expect(screen.getByText("Arcade classique")).toBeInTheDocument();
     expect(screen.getByText("3 membres")).toBeInTheDocument();
     expect(screen.getByText("4 devlogs")).toBeInTheDocument();
+    // Financement : 4 500 € sur 10 000 €
+    expect(screen.getByRole("progressbar", { name: "Financement de Neon Pusher" })).toHaveAttribute("aria-valuenow", "45");
+    expect(screen.getByText(/financés · 45 %/)).toBeInTheDocument();
   });
 });

@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Eye, Megaphone, Pencil, Plus, Shield } from "lucide-react";
+import { Eye, HandCoins, Megaphone, Pencil, Plus, Shield } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, FormMessage, Input } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { Badge, Card, EmptyState, ProgressBar, SparkMark } from "@/components/ui/misc";
 import { requireViewer } from "@/lib/auth";
+import { getTeacherBudget, type TeacherBudget } from "@/lib/data/funding";
 import { listMyProjects, type MyProject } from "@/lib/data/projects";
+import { formatEuros } from "@/lib/domain/funding";
 import { computeTimeline, daysLeft } from "@/lib/domain/timeline";
 import { createClient } from "@/lib/supabase/server";
 import { MEMBER_ROLE_LABEL, PLATFORM_LABEL, STATUS_LABEL } from "@/lib/types";
@@ -19,6 +21,7 @@ export const metadata: Metadata = { title: "Mes projets" };
 const INVITATION_MESSAGES: Record<string, { tone: "success" | "error"; text: string }> = {
   accepted: { tone: "success", text: "Bienvenue dans l'équipe !" },
   error: { tone: "error", text: "Cette invitation n'est plus valable." },
+  limit: { tone: "error", text: "Tu as atteint le nombre maximum de projets pour cette année universitaire." },
 };
 
 export default async function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
@@ -35,6 +38,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
     supabase.from("follows").select("project_id").eq("user_id", viewer.id),
   ]);
 
+  const budget = viewer.profile.role === "teacher" ? await getTeacherBudget(viewer.id) : null;
   const followedIds = (follows ?? []).map((f) => f.project_id);
   const { data: feed } = followedIds.length
     ? await supabase
@@ -74,6 +78,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
           </ButtonLink>
         </Card>
       )}
+
+      {budget && <TeacherBudgetCard budget={budget} />}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
         <div className="space-y-10">
@@ -237,6 +243,49 @@ function CreateProjectCard({ disabled }: { disabled: boolean }) {
           </Field>
         </div>
       </ActionForm>
+    </Card>
+  );
+}
+
+function TeacherBudgetCard({ budget }: { budget: TeacherBudget }) {
+  const spentPercent = budget.budget > 0 ? Math.round((budget.spent / budget.budget) * 100) : 0;
+  return (
+    <Card className="mt-6 p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="flex items-center gap-2 text-sm font-semibold text-muted">
+            <HandCoins className="h-4 w-4 text-success" /> Mon budget de financement {budget.schoolYear}
+          </p>
+          <p className="mt-1 font-display text-4xl font-extrabold text-success">{formatEuros(budget.remaining)}</p>
+          <p className="text-sm text-muted">
+            restants sur {formatEuros(budget.budget)} · argent fictif, remis à zéro chaque 1er septembre
+          </p>
+        </div>
+        <ButtonLink href="/discover?sort=progress" variant="outline" size="sm">
+          Trouver des projets à financer
+        </ButtonLink>
+      </div>
+      <div className="mt-4">
+        <ProgressBar value={spentPercent} label="Part du budget investie" tone="success" />
+      </div>
+      {budget.investments.length > 0 ? (
+        <ul className="mt-5 divide-y divide-border">
+          {budget.investments.map((inv) => (
+            <li key={inv.id} className="flex items-center justify-between gap-4 py-2.5 text-sm">
+              {inv.project ? (
+                <Link href={`/p/${inv.project.slug}`} className="font-semibold hover:text-spark-strong">
+                  {inv.project.title}
+                </Link>
+              ) : (
+                <span className="text-muted">Projet supprimé</span>
+              )}
+              <span className="font-bold text-success">{formatEuros(inv.amount)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-sm text-muted">Tu n&apos;as encore financé aucun projet cette année.</p>
+      )}
     </Card>
   );
 }

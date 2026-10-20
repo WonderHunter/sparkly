@@ -32,6 +32,7 @@ export async function createProject(_prev: FormState, formData: FormData): Promi
       created_by: viewer.id,
     });
     if (!error) break;
+    if (error.code === "SP001") return { error: error.message };
     if (error.code === "42501") return { error: "Ton compte ne peut pas créer de projet." };
     if (error.code !== "23505" || attempt === 2) return { error: "Création impossible pour le moment." };
   }
@@ -45,7 +46,7 @@ export async function acceptInvitation(invitationId: string) {
   if (!z.uuid().safeParse(invitationId).success) return;
   const supabase = await createClient();
   const { error } = await supabase.rpc("accept_invitation", { p_invitation: invitationId });
-  if (error) redirect("/dashboard?invitation=error");
+  if (error) redirect(`/dashboard?invitation=${error.code === "SP001" ? "limit" : "error"}`);
   revalidatePath("/", "layout");
   redirect("/dashboard?invitation=accepted");
 }

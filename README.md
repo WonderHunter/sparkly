@@ -33,6 +33,12 @@ Aucun argent réel : la barre de financement de Kickstarter devient la **jauge d
   - avertissement (non bloquant) quand un autre projet porte déjà le même nom, casse et accents ignorés ;
   - description (éditeur riche) ;
   - planning, devlog (brouillon ou publication), équipe, FAQ, publication.
+- **Financement fictif par les enseignant·es**
+  - chaque prof dispose d'un budget annuel (120 000 € par défaut), remis à zéro chaque 1er septembre ;
+  - objectif commun à tous les projets (10 000 € par défaut), dépassable ; jauge en euros sur les cartes et la page projet ;
+  - un financement est modifiable ou retirable tant que le projet n'est pas terminé ; la liste des financeurs est publique ;
+  - règles appliquées en base : seuls les comptes enseignant financent, budget non dépassable.
+- **Limite de projets par étudiant·e** : nombre maximum de projets créés ou rejoints par année universitaire, réglable par l'admin (illimité par défaut).
 - **Communauté :** commentaires avec un niveau de réponse, suivi de projets, fil des projets suivis, signalements.
 - **Administration**
   - statistiques et projets en retard sur le planning ;

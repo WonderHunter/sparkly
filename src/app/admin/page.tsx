@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { Card, ProgressBar } from "@/components/ui/misc";
+import { formatEuros } from "@/lib/domain/funding";
 import { computePace, computeTimeline } from "@/lib/domain/timeline";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,8 +16,11 @@ export default async function AdminOverview() {
     supabase.from("posts").select("*", { count: "exact", head: true }).eq("status", "published"),
     count("comments"),
     supabase.from("reports").select("*", { count: "exact", head: true }).is("resolved_at", null),
-    supabase.from("project_cards").select("id, slug, title, status, progress, starts_on, ends_on, last_post_at"),
+    supabase.from("project_cards").select("id, slug, title, status, progress, starts_on, ends_on, last_post_at, funded_amount"),
   ]);
+  const { data: schoolYear } = await supabase.rpc("current_school_year");
+  const { data: yearInvestments } = await supabase.from("investments").select("amount").eq("school_year", schoolYear as string);
+  const investedThisYear = (yearInvestments ?? []).reduce((sum, i) => sum + i.amount, 0);
 
   const all = cards ?? [];
   const avg = all.length ? Math.round(all.reduce((s, p) => s + (p.progress ?? 0), 0) / all.length) : 0;
@@ -27,11 +31,12 @@ export default async function AdminOverview() {
     { label: "Projets", value: projects.count ?? 0 },
     { label: "Devlogs publiés", value: posts.count ?? 0 },
     { label: "Commentaires", value: comments.count ?? 0 },
+    { label: `Financé en ${schoolYear}`, value: formatEuros(investedThisYear) },
   ];
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {stats.map((s) => (
           <Card key={s.label} className="p-5">
             <p className="font-display text-3xl font-extrabold">{s.value}</p>

@@ -39,14 +39,14 @@ export type Database = {
                   ]
                 },"app_settings": {
                   Row: {
-                    "admin_emails": (string)[],"default_ends_on": string,"default_starts_on": string,"id": boolean,"school_year": string,"updated_at": string
+                    "admin_emails": (string)[],"default_ends_on": string,"default_starts_on": string,"funding_goal": number,"id": boolean,"max_projects_per_student": number | null,"school_year": string,"teacher_annual_budget": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"id"?: boolean,"school_year"?: string,"updated_at"?: string
+                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"id"?: boolean,"school_year"?: string,"updated_at"?: string
+                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -164,6 +164,38 @@ isOneToOne: false
       columns: ["user_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"investments": {
+                  Row: {
+                    "amount": number,"created_at": string,"id": string,"investor_id": string,"project_id": string,"school_year": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"id"?: string,"investor_id": string,"project_id": string,"school_year": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"id"?: string,"investor_id"?: string,"project_id"?: string,"school_year"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "investments_investor_id_fkey"
+      columns: ["investor_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "investments_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_cards"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "investments_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
       referencedColumns: ["id"]
     }
                   ]
@@ -392,7 +424,7 @@ isOneToOne: false
           Views: {
             "project_cards": {
                   Row: {
-                    "category_id": number | null,"category_name": string | null,"category_slug": string | null,"comments_count": number | null,"cover_url": string | null,"created_at": string | null,"ends_on": string | null,"followers_count": number | null,"fts": unknown,"id": string | null,"last_post_at": string | null,"logo_url": string | null,"members_count": number | null,"pitch": string | null,"platform": Database["public"]['Enums']["platform"] | null,"posts_count": number | null,"progress": number | null,"published_at": string | null,"slug": string | null,"starts_on": string | null,"status": Database["public"]['Enums']["project_status"] | null,"title": string | null,"updated_at": string | null
+                    "backers_count": number | null,"category_id": number | null,"category_name": string | null,"category_slug": string | null,"comments_count": number | null,"cover_url": string | null,"created_at": string | null,"ends_on": string | null,"followers_count": number | null,"fts": unknown,"funded_amount": number | null,"id": string | null,"last_post_at": string | null,"logo_url": string | null,"members_count": number | null,"pitch": string | null,"platform": Database["public"]['Enums']["platform"] | null,"posts_count": number | null,"progress": number | null,"published_at": string | null,"slug": string | null,"starts_on": string | null,"status": Database["public"]['Enums']["project_status"] | null,"title": string | null,"updated_at": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -424,6 +456,9 @@ isOneToOne: false
                            },
 "current_role_name":
 { Args: Record<PropertyKey, never>; Returns: Database["public"]['Enums']["user_role"]
+                           },
+"current_school_year":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "default_project_ends_on":
 { Args: Record<PropertyKey, never>; Returns: string
@@ -461,8 +496,14 @@ isOneToOne: false
 "normalize_title":
 { Args: { "p_title": string }; Returns: string
                            },
+"project_is_fundable":
+{ Args: { "p_project": string }; Returns: boolean
+                           },
 "project_is_public":
 { Args: { "p_project": string }; Returns: boolean
+                           },
+"school_year_of":
+{ Args: { "p_date": string }; Returns: string
                            },
 "title_conflicts":
 { Args: { "p_exclude"?: string,"p_title": string }; Returns: {
