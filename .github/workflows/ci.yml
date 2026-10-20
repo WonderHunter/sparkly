@@ -33,7 +33,7 @@ jobs:
       - run: pnpm typecheck
       - name: Tests unitaires (avec couverture)
         run: pnpm test:coverage
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage
@@ -81,7 +81,7 @@ jobs:
       - name: Tests fonctionnels de bout en bout
         run: pnpm test:e2e
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report

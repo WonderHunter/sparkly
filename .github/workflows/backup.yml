@@ -54,7 +54,7 @@ jobs:
           gpg --batch --yes --symmetric --cipher-algo AES256 --passphrase "$BACKUP_PASSPHRASE" -o "sparkly-$(date +%F).tar.gz.gpg" backup.tar.gz
           rm -rf backup backup.tar.gz
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: steps.dump.outputs.skip != 'true'
         with:
           name: sparkly-backup
