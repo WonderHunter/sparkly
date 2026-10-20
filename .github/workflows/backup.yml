@@ -27,17 +27,23 @@ jobs:
       - name: Dump du schéma et des données
         id: dump
         env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_POOLER_HOST: ${{ vars.SUPABASE_POOLER_HOST }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
-          if [ -z "$SUPABASE_DB_URL" ]; then
-            echo "Sauvegarde ignorée : SUPABASE_DB_URL pas encore configurée." >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$SUPABASE_POOLER_HOST" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "Sauvegarde ignorée : SUPABASE_POOLER_HOST ou BACKUP_PASSPHRASE pas encore configurés." >> "$GITHUB_STEP_SUMMARY"
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          password=$(jq -rn --arg p "$SUPABASE_DB_PASSWORD" '$p|@uri')
+          echo "::add-mask::$password"
+          db_url="postgresql://postgres.${SUPABASE_PROJECT_REF}:${password}@${SUPABASE_POOLER_HOST}:5432/postgres"
           mkdir -p backup
-          pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
-          pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f backup/data.sql
-          pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" --role-only -f backup/roles.sql
+          pnpm exec supabase db dump --db-url "$db_url" -f backup/schema.sql
+          pnpm exec supabase db dump --db-url "$db_url" --data-only --use-copy -f backup/data.sql
+          pnpm exec supabase db dump --db-url "$db_url" --role-only -f backup/roles.sql
 
       - name: Chiffrer
         if: steps.dump.outputs.skip != 'true'

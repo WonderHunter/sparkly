@@ -126,11 +126,11 @@ Le déploiement Git automatique de Vercel est désactivé (`vercel.json`) : seul
 
 | Nom | Type | Usage |
 |---|---|---|
-| `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | secrets | Déploiement Vercel |
-| `SUPABASE_ACCESS_TOKEN` | secret | CLI Supabase |
-| `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD` | secrets | Migrations (un projet par environnement) |
-| `SUPABASE_DB_URL`, `BACKUP_PASSPHRASE` | secrets (production) | Sauvegardes |
-| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | variables | Keep-alive |
+| `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | secrets (dépôt) | Déploiement Vercel |
+| `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD` | secrets (par environnement) | Migrations et sauvegardes |
+| `SUPABASE_POOLER_HOST` | variable (par environnement) | Hôte du *session pooler* (ex. `aws-1-eu-west-3.pooler.supabase.com`) : les migrations passent par lui, sans l'API de gestion |
+| `BACKUP_PASSPHRASE` | secret (production) | Chiffrement des sauvegardes |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | variables (par environnement) | Keep-alive |
 
 Côté Vercel : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` et `NEXT_PUBLIC_SITE_URL`.
 
