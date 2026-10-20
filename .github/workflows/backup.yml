@@ -25,15 +25,22 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Dump du schéma et des données
+        id: dump
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "Sauvegarde ignorée : SUPABASE_DB_URL pas encore configurée." >> "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           mkdir -p backup
           pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
           pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f backup/data.sql
           pnpm exec supabase db dump --db-url "$SUPABASE_DB_URL" --role-only -f backup/roles.sql
 
       - name: Chiffrer
+        if: steps.dump.outputs.skip != 'true'
         env:
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
@@ -42,6 +49,7 @@ jobs:
           rm -rf backup backup.tar.gz
 
       - uses: actions/upload-artifact@v4
+        if: steps.dump.outputs.skip != 'true'
         with:
           name: sparkly-backup
           path: sparkly-*.tar.gz.gpg
