@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/misc";
+// Composant serveur : seule la chaîne de version est incluse dans la page.
+import { version } from "../../../package.json";
 
 export function SiteFooter() {
   return (
@@ -49,6 +51,9 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border py-5 text-center text-xs text-muted">
         Projet pédagogique BUT MMI · Aucun paiement, aucune transaction : seule l&apos;avancée compte.
+        <span className="ml-2 inline-block rounded-full border border-border px-2 py-0.5 font-mono" title="Version de Sparkly">
+          v{version}
+        </span>
       </div>
     </footer>
   );
