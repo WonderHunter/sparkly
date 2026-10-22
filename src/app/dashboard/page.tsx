@@ -10,6 +10,7 @@ import { requireViewer } from "@/lib/auth";
 import { getTeacherBudget, type TeacherBudget } from "@/lib/data/funding";
 import { listMyProjects, type MyProject } from "@/lib/data/projects";
 import { formatEuros } from "@/lib/domain/funding";
+import { missingForPublish } from "@/lib/domain/publish";
 import { computeTimeline, daysLeft } from "@/lib/domain/timeline";
 import { createClient } from "@/lib/supabase/server";
 import { MEMBER_ROLE_LABEL, PLATFORM_LABEL, STATUS_LABEL } from "@/lib/types";
@@ -182,6 +183,7 @@ function MyProjectCard({ data }: { data: MyProject }) {
         </div>
         <h3 className="mt-3 font-display text-2xl font-extrabold">{project.title}</h3>
         {project.pitch && <p className="mt-1 text-muted">{project.pitch}</p>}
+        {project.status === "draft" && <DraftHint project={project} base={base} />}
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           <div>
@@ -213,6 +215,19 @@ function MyProjectCard({ data }: { data: MyProject }) {
         </ButtonLink>
       </div>
     </Card>
+  );
+}
+
+function DraftHint({ project, base }: { project: MyProject["project"]; base: string }) {
+  const missing = missingForPublish(project);
+  return (
+    <p className="mt-4 rounded-xl bg-warning-soft px-4 py-2.5 text-sm text-warning">
+      <strong>Brouillon, invisible dans Découvrir.</strong>{" "}
+      {missing.length > 0 ? `À compléter avant publication : ${missing.map((m) => m.label.toLowerCase()).join(", ")}. ` : "Prêt à être publié. "}
+      <Link href={`${base}/edit/publish`} className="font-semibold underline underline-offset-2 hover:no-underline">
+        Publication
+      </Link>
+    </p>
   );
 }
 

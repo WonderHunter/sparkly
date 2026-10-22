@@ -24,6 +24,7 @@ test.describe("Parcours étudiant", () => {
     await page.waitForURL(/\/edit\/basics$/);
 
     // 2. Les bases
+    const editorNav = page.getByRole("navigation", { name: "Sections de l'éditeur" });
     await page.getByLabel("Phrase d'accroche").fill("Un jeu de test qui donne envie d'y jouer.");
     await page.getByLabel("Vidéo de présentation").fill("https://youtu.be/216_5nu4aVQ");
     await page.getByRole("button", { name: "Enregistrer" }).click();
@@ -38,7 +39,7 @@ test.describe("Parcours étudiant", () => {
     await expect(page.getByText("Enregistré.")).toBeVisible();
 
     // 3. Description (éditeur riche)
-    await page.getByRole("link", { name: "Description" }).click();
+    await editorNav.getByRole("link", { name: "Description" }).click();
     const editor = page.getByRole("textbox", { name: "Description du jeu" });
     await editor.click();
     await editor.pressSequentially("Un jeu d'arcade où chaque partie dure trois minutes.");
@@ -46,14 +47,14 @@ test.describe("Parcours étudiant", () => {
     await expect(page.getByText("Description enregistrée.")).toBeVisible();
 
     // 4. Planning : terminer la conception (8 %)
-    await page.getByRole("link", { name: "Planning" }).click();
+    await editorNav.getByRole("link", { name: "Planning" }).click();
     await page.getByRole("button", { name: "Démarrer" }).first().click();
     await expect(page.getByRole("button", { name: "Terminer" }).first()).toBeVisible();
     await page.getByRole("button", { name: "Terminer" }).first().click();
     await expect(page.getByText("8 % d'avancée")).toBeVisible();
 
     // 5. Devlog
-    await page.getByRole("link", { name: "Actualités" }).click();
+    await editorNav.getByRole("link", { name: "Actualités" }).click();
     await page.getByRole("link", { name: "Nouvelle mise à jour" }).click();
     await page.getByLabel("Titre de ce qui a été fait").fill("Moodboard terminé");
     const body = page.getByRole("textbox", { name: "Texte de la mise à jour" });
@@ -64,7 +65,7 @@ test.describe("Parcours étudiant", () => {
     await expect(page.getByText("Mise à jour n°1")).toBeVisible();
 
     // 6. Publication
-    await page.getByRole("link", { name: "Publication" }).click();
+    await editorNav.getByRole("link", { name: "Publication" }).click();
     await page.getByRole("button", { name: "Publier le projet" }).click();
     await expect(page.getByText("Projet publié !")).toBeVisible();
 

@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Eye, EyeOff, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Rocket, Trash2 } from "lucide-react";
 import { Badge, ProgressBar } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PLATFORM_LABEL, STATUS_LABEL } from "@/lib/types";
 import { formatRelative } from "@/lib/utils";
-import { adminDeleteProject, setProjectHidden } from "../actions";
+import { adminDeleteProject, forcePublishProject, setProjectHidden } from "../actions";
 
 export default async function AdminProjects() {
   const viewer = await getViewer();
@@ -57,6 +57,17 @@ export default async function AdminProjects() {
               </td>
               <td className="px-4 py-3">
                 <div className="flex justify-end gap-1">
+                  {p.status === "draft" && (
+                    <form action={forcePublishProject.bind(null, p.id!)}>
+                      <button
+                        type="submit"
+                        title="Publier ce brouillon, même s'il est incomplet"
+                        className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-success hover:bg-success-soft"
+                      >
+                        <Rocket className="h-3.5 w-3.5" /> Publier
+                      </button>
+                    </form>
+                  )}
                   <form action={setProjectHidden.bind(null, p.id!, p.status !== "hidden")}>
                     <button
                       type="submit"
