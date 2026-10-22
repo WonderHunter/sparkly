@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getEditContext } from "@/lib/data/editor";
+import { missingForPublish } from "@/lib/domain/publish";
 import { isEmptyRichText, sanitizeRichText } from "@/lib/domain/sanitize";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -328,8 +329,9 @@ export async function deleteFaq(slug: string, faqId: string) {
 export async function setPublished(slug: string, publish: boolean): Promise<FormState> {
   const { project } = await getEditContext(slug);
   if (project.status === "hidden") return { error: "Ce projet a été masqué par l'équipe pédagogique." };
-  if (publish && (!project.pitch.trim() || isEmptyRichText(project.story))) {
-    return { error: "Ajoute au moins une accroche et une description avant de publier." };
+  const missing = missingForPublish(project);
+  if (publish && missing.length > 0) {
+    return { error: `Avant de publier, il manque : ${missing.map((m) => m.label.toLowerCase()).join(" et ")}.` };
   }
   const supabase = await createClient();
   const { error } = await supabase

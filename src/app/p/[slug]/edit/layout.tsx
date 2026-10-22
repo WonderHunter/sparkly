@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { EditorNav } from "@/components/editor/editor-nav";
+import { DraftCallout } from "@/components/project/draft-notice";
 import { Badge } from "@/components/ui/misc";
 import { getEditContext } from "@/lib/data/editor";
 import { STATUS_LABEL } from "@/lib/types";
@@ -35,6 +36,8 @@ export default async function EditLayout({ params, children }: LayoutProps<"/p/[
           Voir la page publique <ExternalLink className="h-4 w-4" />
         </Link>
       </div>
+
+      <DraftCallout project={project} />
 
       <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
         <EditorNav base={`${base}/edit`} />
