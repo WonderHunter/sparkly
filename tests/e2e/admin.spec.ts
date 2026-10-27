@@ -44,4 +44,17 @@ test.describe("Administration", () => {
     await page.reload();
     await expect(page.getByText("Compte Jetable")).toHaveCount(0);
   });
+
+  test("l'administration et l'éditeur tiennent sur un écran de téléphone", async ({ page }) => {
+    await login(page, "admin.demo@univ-reims.fr", "/admin");
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const path of ["/admin", "/admin/projects", "/admin/users", "/admin/reports", "/admin/settings", "/p/neon-pusher/edit/basics"]) {
+      await page.goto(path);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow, `débordement horizontal sur ${path}`).toBeLessThanOrEqual(0);
+    }
+    // Sur mobile, les actions des projets restent accessibles par leur nom.
+    await page.goto("/admin/projects");
+    await expect(page.getByRole("row", { name: /Rythme du Hall/ }).getByRole("button", { name: "Masquer" })).toBeVisible();
+  });
 });

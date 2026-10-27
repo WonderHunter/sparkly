@@ -19,8 +19,9 @@ const TABS = [
 export function EditorNav({ base }: { base: string }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Sections de l'éditeur" className="lg:sticky lg:top-24 lg:self-start">
-      <ul className="flex gap-1 overflow-x-auto lg:flex-col">
+    <nav aria-label="Sections de l'éditeur" className="-mx-4 min-w-0 px-4 sm:mx-0 sm:px-0 lg:sticky lg:top-24 lg:self-start">
+      {/* Mobile : bandeau défilant horizontalement ; desktop : colonne. */}
+      <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:pb-0">
         {TABS.map(({ slug, label, icon: Icon }) => {
           const href = `${base}/${slug}`;
           const active = pathname === href || pathname.startsWith(`${href}/`);

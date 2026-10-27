@@ -82,7 +82,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
 
       {budget && <TeacherBudgetCard budget={budget} />}
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
         <div className="space-y-10">
           {invitations && invitations.length > 0 && (
             <section>

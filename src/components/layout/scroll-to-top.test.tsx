@@ -27,7 +27,7 @@ describe("ScrollToTop", () => {
     const { rerender } = render(<ScrollToTop />);
     pathname = "/p/neon-pusher/roadmap";
     rerender(<ScrollToTop />);
-    expect(scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: "instant" });
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
   });
 
   it("laisse le navigateur restaurer la position avec précédent/suivant", () => {

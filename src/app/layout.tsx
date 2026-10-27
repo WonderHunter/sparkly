@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -39,6 +41,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <SiteFooter />
+        {/* Mesures Vercel (sans cookies) : n'envoient rien hors d'un déploiement Vercel. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

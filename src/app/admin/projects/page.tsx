@@ -21,17 +21,17 @@ export default async function AdminProjects() {
         <caption className="sr-only">Tous les projets</caption>
         <thead className="border-b border-border bg-surface-muted text-xs text-muted uppercase">
           <tr>
-            <th className="px-4 py-3">Projet</th>
-            <th className="px-4 py-3">Statut</th>
+            <th className="px-3 py-3 sm:px-4">Projet</th>
+            <th className="px-3 py-3 sm:px-4">Statut</th>
             <th className="hidden px-4 py-3 md:table-cell">Avancée</th>
             <th className="hidden px-4 py-3 lg:table-cell">Activité</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-3 py-3 text-right sm:px-4">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {(projects ?? []).map((p) => (
             <tr key={p.id}>
-              <td className="px-4 py-3">
+              <td className="px-3 py-3 sm:px-4">
                 <Link href={`/p/${p.slug}`} className="font-semibold hover:text-spark-strong">
                   {p.title}
                 </Link>
@@ -39,7 +39,7 @@ export default async function AdminProjects() {
                   {p.platform && PLATFORM_LABEL[p.platform]} · {p.members_count} membres
                 </p>
               </td>
-              <td className="px-4 py-3">
+              <td className="px-3 py-3 sm:px-4">
                 {p.status && (
                   <Badge tone={p.status === "published" ? "success" : p.status === "hidden" ? "danger" : "warning"}>
                     {STATUS_LABEL[p.status]}
@@ -55,26 +55,26 @@ export default async function AdminProjects() {
                 <br />
                 {p.updated_at && `modifié ${formatRelative(p.updated_at)}`}
               </td>
-              <td className="px-4 py-3">
+              <td className="px-3 py-3 sm:px-4">
                 <div className="flex justify-end gap-1">
                   {p.status === "draft" && (
                     <form action={forcePublishProject.bind(null, p.id!)}>
                       <button
                         type="submit"
                         title="Publier ce brouillon, même s'il est incomplet"
-                        className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-success hover:bg-success-soft"
+                        className="inline-flex items-center gap-1 rounded-full p-2 text-xs font-semibold sm:px-3 sm:py-1.5 text-success hover:bg-success-soft"
                       >
-                        <Rocket className="h-3.5 w-3.5" /> Publier
+                        <Rocket className="h-3.5 w-3.5" /> <span className="sr-only sm:not-sr-only">Publier</span>
                       </button>
                     </form>
                   )}
                   <form action={setProjectHidden.bind(null, p.id!, p.status !== "hidden")}>
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold hover:bg-surface-muted"
+                      className="inline-flex items-center gap-1 rounded-full p-2 text-xs font-semibold sm:px-3 sm:py-1.5 hover:bg-surface-muted"
                     >
                       {p.status === "hidden" ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                      {p.status === "hidden" ? "Rétablir" : "Masquer"}
+                      <span className="sr-only sm:not-sr-only">{p.status === "hidden" ? "Rétablir" : "Masquer"}</span>
                     </button>
                   </form>
                   {viewer?.isAdmin && (
