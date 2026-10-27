@@ -2,7 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useSyncExternalStore } from "react";
-import { resolveTheme, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
+import { ensureThemeApplied, resolveTheme, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 function currentTheme(): Theme {
@@ -39,6 +39,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   const theme = useSyncExternalStore<Theme | null>(subscribe, currentTheme, () => null);
 
   useEffect(() => {
+    ensureThemeApplied();
     // Sans choix explicite, on suit le thème du système quand il change.
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {

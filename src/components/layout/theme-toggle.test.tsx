@@ -39,6 +39,13 @@ describe("ThemeToggle", () => {
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
   });
 
+  it("pose le thème quand le script de <head> n'a pas tourné (page d'erreur rendue côté client)", () => {
+    delete document.documentElement.dataset.theme;
+    localStorage.setItem(THEME_STORAGE_KEY, "dark");
+    render(<ThemeToggle />);
+    expect(document.documentElement.dataset.theme).toBe("dark");
+  });
+
   it("utilise le fondu enchaîné du navigateur quand il existe", () => {
     const startViewTransition = vi.fn((update: () => void) => update());
     Object.assign(document, { startViewTransition });

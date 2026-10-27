@@ -4,7 +4,12 @@ import { login, logout, uniqueEmail } from "./helpers";
 test.describe("Administration", () => {
   test("un étudiant n'accède pas au panel admin", async ({ page }) => {
     await login(page, uniqueEmail("eleve"), "/admin");
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/admin");
+    await expect(page.getByRole("heading", { name: "Cette zone est réservée" })).toBeVisible();
+
+    const response = await page.goto("/admin/users");
+    expect(response?.status()).toBe(403);
+    await expect(page.getByRole("heading", { name: "Cette zone est réservée" })).toBeVisible();
   });
 
   test("l'admin modère un projet et supprime un compte", async ({ page }) => {
