@@ -32,7 +32,7 @@ export function EditorNav({ base }: { base: string }) {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold whitespace-nowrap",
-                  active ? "bg-ink text-white" : "text-muted hover:bg-surface-muted hover:text-foreground",
+                  active ? "bg-ink text-ink-foreground" : "text-muted hover:bg-surface-muted hover:text-foreground",
                 )}
               >
                 <Icon className="h-4 w-4" aria-hidden />

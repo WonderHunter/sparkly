@@ -73,7 +73,7 @@ export function ImageField({ name, label, defaultValue, aspect = "video", hint, 
             <button
               type="button"
               onClick={() => setUrl("")}
-              className="absolute top-2 right-2 rounded-full bg-ink/80 p-1.5 text-white hover:bg-ink"
+              className="absolute top-2 right-2 rounded-full bg-black/70 p-1.5 text-white hover:bg-black/85"
               aria-label={`Retirer l'image : ${label}`}
             >
               <X className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function GalleryField({ name, defaultValue = [], max = 8, ...options }: U
             <button
               type="button"
               onClick={() => setUrls((prev) => prev.filter((x) => x !== u))}
-              className="absolute top-1 right-1 rounded-full bg-ink/80 p-1 text-white"
+              className="absolute top-1 right-1 rounded-full bg-black/70 p-1 text-white"
               aria-label="Retirer cette image"
             >
               <X className="h-3.5 w-3.5" />

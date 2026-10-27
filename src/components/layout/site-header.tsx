@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LayoutDashboard, LogOut, Search, Settings, Shield, User } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import { AccountMenu } from "@/components/layout/account-menu";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ButtonLink } from "@/components/ui/button";
 import { Avatar, Logo } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
@@ -42,6 +43,8 @@ export async function SiteHeader() {
             />
           </div>
         </form>
+
+        <ThemeToggle className="ml-auto sm:ml-0" />
 
         {viewer ? (
           <AccountMenu
@@ -84,7 +87,7 @@ export async function SiteHeader() {
             </div>
           </AccountMenu>
         ) : (
-          <ButtonLink href="/login" variant="secondary" size="sm" className="ml-auto sm:ml-0">
+          <ButtonLink href="/login" variant="secondary" size="sm">
             Se connecter
           </ButtonLink>
         )}

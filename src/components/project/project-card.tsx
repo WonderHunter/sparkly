@@ -33,7 +33,7 @@ export function ProjectCard({
             preload={preload}
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-spark-soft via-surface-muted to-[#ffe7c2]">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-spark-soft via-surface-muted to-glow">
             <SparkMark className="h-14 w-14 text-spark/60" />
           </div>
         )}
