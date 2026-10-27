@@ -39,7 +39,7 @@ export default async function EditLayout({ params, children }: LayoutProps<"/p/[
 
       <DraftCallout project={project} />
 
-      <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
         <EditorNav base={`${base}/edit`} />
         <div className="min-w-0">{children}</div>
       </div>

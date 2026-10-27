@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         <h1 className="font-display text-4xl font-extrabold tracking-tight">Administration</h1>
         <Badge tone="spark">{ROLE_LABEL[viewer.profile.role]}</Badge>
       </div>
-      <div className="grid gap-8 lg:grid-cols-[200px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[200px_minmax(0,1fr)]">
         <AdminNav isAdmin={viewer.isAdmin} />
         <div className="min-w-0">{children}</div>
       </div>

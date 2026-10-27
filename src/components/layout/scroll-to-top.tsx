@@ -30,7 +30,8 @@ export function ScrollToTop() {
       return;
     }
     if (window.location.hash) return;
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    // Forme la plus simple : certaines versions de Safari refusent behavior: "instant".
+    window.scrollTo(0, 0);
   }, [pathname]);
 
   return null;
