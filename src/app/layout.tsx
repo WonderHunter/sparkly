@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getSiteUrl } from "@/lib/site-url";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -25,12 +28,20 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${geistSans.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}>
+    // data-theme est posé par le script avant l'hydratation : React ne doit pas le signaler.
+    <html
+      lang="fr"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col font-sans">
         <ScrollToTop />
         <a
           href="#contenu"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-white"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-ink-foreground"
         >
           Aller au contenu
         </a>
@@ -39,6 +50,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <SiteFooter />
+        {/* Mesures Vercel (sans cookies) : n'envoient rien hors d'un déploiement Vercel. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
