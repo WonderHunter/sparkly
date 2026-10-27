@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { EyeOff, FolderGit2, Gamepad2, Heart, Pencil, Users } from "lucide-react";
+import { FolderGit2, Gamepad2, Heart, Pencil, Users } from "lucide-react";
+import { DraftBanner } from "@/components/project/draft-notice";
 import { FundForm } from "@/components/project/fund-form";
 import { FundingPanel } from "@/components/project/funding-panel";
 import { ProgressPanel } from "@/components/project/progress-panel";
@@ -53,16 +54,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
 
   return (
     <div>
-      {project.status !== "published" && (
-        <div className={project.status === "hidden" ? "bg-danger-soft text-danger" : "bg-warning-soft text-warning"}>
-          <p className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-2.5 text-sm font-semibold sm:px-6">
-            <EyeOff className="h-4 w-4" aria-hidden />
-            {project.status === "hidden"
-              ? "Ce projet a été masqué par l'équipe pédagogique."
-              : "Brouillon : seuls les membres du groupe et les profs voient cette page."}
-          </p>
-        </div>
-      )}
+      <DraftBanner project={project} isMember={isMember} isStaff={Boolean(viewer?.isStaff && !viewer.isSuspended)} />
 
       <header className="mx-auto max-w-7xl px-4 pt-10 text-center sm:px-6">
         <div className="mx-auto flex max-w-3xl flex-col items-center">

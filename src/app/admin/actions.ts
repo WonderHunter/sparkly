@@ -62,6 +62,15 @@ export async function setProjectHidden(projectId: string, hidden: boolean) {
   revalidatePath("/", "layout");
 }
 
+/** Publication par l'équipe pédagogique d'un brouillon, même incomplet. */
+export async function forcePublishProject(projectId: string) {
+  await requireStaff();
+  if (!uuid.safeParse(projectId).success) return;
+  const supabase = await createClient();
+  await supabase.from("projects").update({ status: "published" }).eq("id", projectId).eq("status", "draft");
+  revalidatePath("/", "layout");
+}
+
 export async function adminDeleteProject(projectId: string) {
   await requireAdmin();
   if (!uuid.safeParse(projectId).success) return;
