@@ -36,7 +36,7 @@ export function AccountMenu({ trigger, children }: { trigger: ReactNode; childre
   return (
     <details
       ref={ref}
-      className="group relative ml-auto sm:ml-0"
+      className="group relative"
       onClick={(event) => {
         // Un clic sur un lien du menu le referme (la navigation reste côté client).
         if ((event.target as HTMLElement).closest("a")) event.currentTarget.open = false;

@@ -75,7 +75,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
       </header>
 
       <section className="mx-auto mt-10 grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
-        <div className="relative aspect-video overflow-hidden rounded-2xl bg-ink">
+        <div className="relative aspect-video overflow-hidden rounded-2xl bg-stone-950">
           {video ? (
             <iframe
               src={video.embedUrl}
@@ -88,7 +88,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
           ) : project.cover_url ? (
             <Image src={project.cover_url} alt="" fill preload sizes="(min-width: 1024px) 66vw, 100vw" className="object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-spark-soft via-surface-muted to-[#ffe7c2]">
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-spark-soft via-surface-muted to-glow">
               <SparkMark className="h-20 w-20 text-spark/60" />
             </div>
           )}
