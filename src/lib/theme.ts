@@ -9,6 +9,20 @@ export function resolveTheme(stored: string | null, systemPrefersDark: boolean):
 }
 
 /**
+ * Pose data-theme s'il manque. Après une erreur serveur, Next rend la page côté client
+ * dans une coquille vide : le script de <head> n'est alors jamais exécuté.
+ */
+export function ensureThemeApplied() {
+  const root = document.documentElement;
+  if (root.dataset.theme) return;
+  let stored: string | null = null;
+  try {
+    stored = localStorage.getItem(THEME_STORAGE_KEY);
+  } catch {}
+  root.dataset.theme = resolveTheme(stored, window.matchMedia("(prefers-color-scheme: dark)").matches);
+}
+
+/**
  * Exécuté dans <head> avant l'affichage : pose data-theme pour éviter un flash clair
  * au chargement d'une page en thème sombre. Reprend resolveTheme en JavaScript brut.
  */

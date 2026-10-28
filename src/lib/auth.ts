@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
@@ -42,14 +42,15 @@ export async function requireViewer(next?: string): Promise<Viewer> {
   return viewer;
 }
 
+/** Connecté mais pas prof : page 403 (forbidden.tsx) plutôt qu'une redirection muette. */
 export async function requireStaff(): Promise<Viewer> {
   const viewer = await requireViewer("/admin");
-  if (!viewer.isStaff) redirect("/");
+  if (!viewer.isStaff) forbidden();
   return viewer;
 }
 
 export async function requireAdmin(): Promise<Viewer> {
   const viewer = await requireViewer("/admin");
-  if (!viewer.isAdmin) redirect("/admin");
+  if (!viewer.isAdmin) forbidden();
   return viewer;
 }

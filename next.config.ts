@@ -8,6 +8,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const isLocalSupabase = !supabaseUrl || /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/.test(supabaseUrl);
 
 const nextConfig: NextConfig = {
+  // forbidden() pour afficher une vraie page 403 dans l'admin.
+  experimental: {
+    authInterrupts: true,
+  },
   images: {
     dangerouslyAllowLocalIP: isLocalSupabase,
     remotePatterns: [
