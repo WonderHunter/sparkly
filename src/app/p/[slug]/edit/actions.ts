@@ -52,6 +52,7 @@ export async function updateBasics(slug: string, _prev: FormState, formData: For
     videoUrl: str(formData, "videoUrl"),
     gameUrl: str(formData, "gameUrl"),
     repoUrl: str(formData, "repoUrl"),
+    siteUrl: str(formData, "siteUrl"),
     coverUrl: str(formData, "coverUrl"),
     logoUrl: str(formData, "logoUrl"),
   });
@@ -72,6 +73,7 @@ export async function updateBasics(slug: string, _prev: FormState, formData: For
       video_url: d.videoUrl,
       game_url: d.gameUrl,
       repo_url: d.repoUrl,
+      site_url: d.siteUrl,
       cover_url: d.coverUrl,
       logo_url: d.logoUrl,
     })

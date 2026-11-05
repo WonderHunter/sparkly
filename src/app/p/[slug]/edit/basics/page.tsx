@@ -105,6 +105,11 @@ export default async function BasicsTab({ params, searchParams }: PageProps<"/p/
           </Field>
         </div>
 
+        <Field label="Site de gestion / promotion" htmlFor="siteUrl" hint="Le site de votre groupe (scores, actus, réglages…). Il apparaît dans un encart sur la page du projet.">
+          <Input id="siteUrl" name="siteUrl" type="url" defaultValue={project.site_url ?? ""} placeholder="https://…" />
+          <FieldError name="siteUrl" />
+        </Field>
+
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Début du projet" htmlFor="startsOn">
             <Input id="startsOn" name="startsOn" type="date" defaultValue={project.starts_on} required />
