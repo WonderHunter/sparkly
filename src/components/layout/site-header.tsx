@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LayoutDashboard, LogOut, Search, Settings, Shield, User } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import { AccountMenu } from "@/components/layout/account-menu";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ButtonLink } from "@/components/ui/button";
 import { Avatar, Logo } from "@/components/ui/misc";
@@ -45,6 +46,7 @@ export async function SiteHeader() {
         </form>
 
         <ThemeToggle className="ml-auto sm:ml-0" />
+        {viewer && <NotificationBell />}
 
         {viewer ? (
           <AccountMenu

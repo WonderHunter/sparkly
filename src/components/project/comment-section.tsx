@@ -7,7 +7,7 @@ import { Avatar, Badge } from "@/components/ui/misc";
 import type { Viewer } from "@/lib/auth";
 import type { CommentThread, CommentWithAuthor } from "@/lib/data/projects";
 import { ROLE_LABEL } from "@/lib/types";
-import { formatRelative } from "@/lib/utils";
+import { cn, formatRelative } from "@/lib/utils";
 import { CommentForm, ReportButton } from "./comment-form";
 
 interface CommentSectionProps {
@@ -86,7 +86,7 @@ function CommentItem({ comment, slug, viewer }: { comment: CommentWithAuthor; sl
   const hidden = comment.hidden_at !== null;
 
   return (
-    <article className={hidden ? "opacity-60" : undefined}>
+    <article id={`comment-${comment.id}`} className={cn("scroll-mt-24", hidden && "opacity-60")}>
       <header className="flex items-center gap-3">
         <Avatar name={author?.display_name ?? "Compte supprimé"} src={author?.avatar_url} size="sm" />
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">

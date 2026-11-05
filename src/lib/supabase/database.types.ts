@@ -225,6 +225,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"notifications": {
+                  Row: {
+                    "actor_id": string | null,"comment_id": string,"created_at": string,"id": string,"kind": string,"project_id": string,"read_at": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id"?: string | null,"comment_id": string,"created_at"?: string,"id"?: string,"kind": string,"project_id": string,"read_at"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "actor_id"?: string | null,"comment_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"project_id"?: string,"read_at"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notifications_actor_id_fkey"
+      columns: ["actor_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_comment_id_fkey"
+      columns: ["comment_id"]
+isOneToOne: false
+      referencedRelation: "comments"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "project_cards"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"posts": {
                   Row: {
                     "author_id": string | null,"body": string,"created_at": string,"id": string,"images": (string)[],"milestone_id": string | null,"number": number | null,"project_id": string,"published_at": string | null,"status": Database["public"]['Enums']["post_status"],"title": string,"updated_at": string
@@ -492,6 +536,9 @@ isOneToOne: false
                            },
 "is_staff":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"mark_notifications_read":
+{ Args: { "p_id"?: string }; Returns: undefined
                            },
 "my_email":
 { Args: Record<PropertyKey, never>; Returns: string
