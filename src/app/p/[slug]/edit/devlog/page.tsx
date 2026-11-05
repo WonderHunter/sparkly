@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { EditorSection } from "@/components/editor/editor-section";
 import { ButtonLink } from "@/components/ui/button";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { FormMessage } from "@/components/ui/form";
 import { Badge, EmptyState } from "@/components/ui/misc";
 import { getEditContext } from "@/lib/data/editor";
@@ -61,11 +62,16 @@ export default async function DevlogTab({ params, searchParams }: PageProps<"/p/
               <ButtonLink href={`${base}/${post.id}`} variant="outline" size="sm">
                 <Pencil className="h-3.5 w-3.5" /> Modifier
               </ButtonLink>
-              <form action={deletePost.bind(null, project.slug, post.id)}>
-                <button type="submit" aria-label={`Supprimer « ${post.title} »`} className="rounded-full p-2 text-muted hover:bg-danger-soft hover:text-danger">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </form>
+              <ConfirmDelete
+                action={deletePost.bind(null, project.slug, post.id)}
+                title={`Supprimer « ${post.title} » ?`}
+                description="Cette mise à jour et ses commentaires disparaîtront du devlog."
+                confirmLabel="Supprimer la mise à jour"
+                triggerLabel={`Supprimer « ${post.title} »`}
+                triggerClassName="rounded-full p-2 text-muted hover:bg-danger-soft hover:text-danger"
+              >
+                <Trash2 className="h-4 w-4" />
+              </ConfirmDelete>
             </li>
           ))}
         </ul>

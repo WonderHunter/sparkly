@@ -1,6 +1,7 @@
 import { Check, LoaderCircle, RotateCcw, Trash2 } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { EditorSection } from "@/components/editor/editor-section";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Field, Input } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { Badge, ProgressBar } from "@/components/ui/misc";
@@ -78,11 +79,16 @@ function MilestoneRow({ milestone: m, slug }: { milestone: Milestone; slug: stri
             {step.icon} {step.label}
           </button>
         </form>
-        <form action={deleteMilestone.bind(null, slug, m.id)}>
-          <button type="submit" aria-label={`Supprimer le jalon ${m.title}`} className="rounded-full p-2 text-muted hover:bg-danger-soft hover:text-danger">
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </form>
+        <ConfirmDelete
+          action={deleteMilestone.bind(null, slug, m.id)}
+          title={`Supprimer le jalon « ${m.title} » ?`}
+          description="Il disparaît du planning et l'avancée du projet est recalculée sans lui."
+          confirmLabel="Supprimer le jalon"
+          triggerLabel={`Supprimer le jalon ${m.title}`}
+          triggerClassName="rounded-full p-2 text-muted hover:bg-danger-soft hover:text-danger"
+        >
+          <Trash2 className="h-4 w-4" />
+        </ConfirmDelete>
       </div>
       <details className="mt-3">
         <summary className="cursor-pointer text-sm font-semibold text-muted hover:text-foreground">Modifier</summary>

@@ -50,6 +50,39 @@ test.describe("Administration", () => {
     await expect(page.getByText("Compte Jetable")).toHaveCount(0);
   });
 
+  test("la poubelle d'un projet demande confirmation dans un modal", async ({ page }) => {
+    // Un étudiant crée un projet jetable.
+    const title = `A supprimer ${Date.now()}`;
+    await login(page, uniqueEmail("projet-jetable"), "/dashboard");
+    await page.getByLabel(/Nom du jeu/).fill(title);
+    await page.getByRole("button", { name: "Créer le projet" }).click();
+    await page.waitForURL(/\/edit\/basics$/);
+    await logout(page);
+
+    await login(page, "admin.demo@univ-reims.fr", "/admin/projects");
+    const row = page.getByRole("row", { name: new RegExp(title) });
+    const trash = row.getByRole("button", { name: `Supprimer ${title}` });
+
+    // Premier clic : rien n'est supprimé, le modal s'ouvre. « Annuler » le referme.
+    await trash.click();
+    const dialog = page.getByRole("dialog", { name: `Supprimer « ${title} » ?` });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("Cette action est définitive.");
+    await dialog.getByRole("button", { name: "Annuler" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(row).toBeVisible();
+
+    // Échap ferme aussi le modal.
+    await trash.click();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+
+    // Confirmation : le projet disparaît.
+    await trash.click();
+    await dialog.getByRole("button", { name: "Supprimer le projet" }).click();
+    await expect(page.getByRole("row", { name: new RegExp(title) })).toHaveCount(0);
+  });
+
   test("l'administration et l'éditeur tiennent sur un écran de téléphone", async ({ page }) => {
     await login(page, "admin.demo@univ-reims.fr", "/admin");
     await page.setViewportSize({ width: 390, height: 844 });

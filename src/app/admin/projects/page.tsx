@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Eye, EyeOff, Rocket, Trash2 } from "lucide-react";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Badge, ProgressBar } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PLATFORM_LABEL, STATUS_LABEL } from "@/lib/types";
-import { formatRelative } from "@/lib/utils";
+import { formatRelative, pluralize } from "@/lib/utils";
 import { adminDeleteProject, forcePublishProject, setProjectHidden } from "../actions";
 
 export default async function AdminProjects() {
@@ -78,15 +79,16 @@ export default async function AdminProjects() {
                     </button>
                   </form>
                   {viewer?.isAdmin && (
-                    <form action={adminDeleteProject.bind(null, p.id!)}>
-                      <button
-                        type="submit"
-                        aria-label={`Supprimer ${p.title}`}
-                        className="rounded-full p-1.5 text-muted hover:bg-danger-soft hover:text-danger"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </form>
+                    <ConfirmDelete
+                      action={adminDeleteProject.bind(null, p.id!)}
+                      title={`Supprimer « ${p.title} » ?`}
+                      description={`Le projet disparaît de Sparkly avec tout son contenu : ${pluralize(p.posts_count ?? 0, "devlog")}, ${pluralize(p.comments_count ?? 0, "commentaire")}, le planning et la FAQ. Pour le retirer temporairement, préfère « Masquer ».`}
+                      confirmLabel="Supprimer le projet"
+                      triggerLabel={`Supprimer ${p.title}`}
+                      triggerClassName="rounded-full p-1.5 text-muted hover:bg-danger-soft hover:text-danger"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </ConfirmDelete>
                   )}
                 </div>
               </td>
