@@ -6,6 +6,7 @@ import { FundForm } from "@/components/project/fund-form";
 import { FundingPanel } from "@/components/project/funding-panel";
 import { ProgressPanel } from "@/components/project/progress-panel";
 import { ProjectTabs } from "@/components/project/project-tabs";
+import { SiteCard } from "@/components/project/site-card";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge, SparkMark } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
@@ -159,6 +160,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
               </a>
             )}
           </div>
+          {project.site_url && <SiteCard url={project.site_url} />}
           <p className="flex items-center gap-1.5 text-xs text-muted">
             <Users className="h-3.5 w-3.5" /> Projet de groupe · {pluralize(members.length, "membre")}
           </p>
