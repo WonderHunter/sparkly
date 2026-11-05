@@ -6,6 +6,7 @@ import { invest, withdrawInvestment, type ActionState } from "@/app/p/[slug]/act
 import { Button } from "@/components/ui/button";
 import { FormMessage, Input } from "@/components/ui/form";
 import { formatEuros, parseEuros } from "@/lib/domain/funding";
+import { submitKeepingValues } from "@/lib/keep-form-values";
 
 interface FundFormProps {
   slug: string;
@@ -40,7 +41,7 @@ export function FundForm({ slug, projectId, current, remaining, schoolYear, fund
 
   return (
     <div className="rounded-2xl border border-success/30 bg-success-soft/40 p-4">
-      <form action={action} className="space-y-3" noValidate>
+      <form action={action} onSubmit={submitKeepingValues(action)} className="space-y-3" noValidate>
         <label htmlFor="fund-amount" className="block text-sm font-semibold">
           {current ? "Modifier ton financement" : "Financer ce projet"}
         </label>
