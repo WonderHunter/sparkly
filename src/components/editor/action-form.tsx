@@ -3,6 +3,7 @@
 import { createContext, useActionState, useContext, useEffect, useRef, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form";
+import { submitKeepingValues } from "@/lib/keep-form-values";
 import { cn } from "@/lib/utils";
 
 export type FormState = { ok?: boolean; error?: string; message?: string; fields?: Record<string, string> };
@@ -42,7 +43,7 @@ export function ActionForm({
 
   return (
     <FieldsContext value={state.fields ?? {}}>
-      <form ref={ref} action={formAction} className={cn("space-y-5", className)} noValidate>
+      <form ref={ref} action={formAction} onSubmit={submitKeepingValues(formAction)} className={cn("space-y-5", className)} noValidate>
         {children}
         {state.error && <FormMessage>{state.error}</FormMessage>}
         {state.ok && state.message && <FormMessage tone="success">{state.message}</FormMessage>}

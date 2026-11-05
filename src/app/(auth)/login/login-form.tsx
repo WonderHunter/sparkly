@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FormMessage, Input } from "@/components/ui/form";
+import { submitKeepingValues } from "@/lib/keep-form-values";
 import { requestOtp, verifyOtp, type LoginState } from "../actions";
 
 const INITIAL: LoginState = { step: "email" };
@@ -16,7 +17,7 @@ export function LoginForm({ next }: { next: string }) {
 
   if (!codeStep) {
     return (
-      <form action={sendCode} className="mt-6 space-y-4" noValidate>
+      <form action={sendCode} onSubmit={submitKeepingValues(sendCode)} className="mt-6 space-y-4" noValidate>
         <Field
           label="Adresse e-mail universitaire"
           htmlFor="email"
@@ -48,7 +49,7 @@ export function LoginForm({ next }: { next: string }) {
   return (
     <div className="mt-6 space-y-4">
       <FormMessage tone="success">{codeStep.info}</FormMessage>
-      <form action={checkCode} className="space-y-4" noValidate>
+      <form action={checkCode} onSubmit={submitKeepingValues(checkCode)} className="space-y-4" noValidate>
         <input type="hidden" name="email" value={codeStep.email} />
         <input type="hidden" name="next" value={next} />
         <Field label="Code reçu par e-mail" htmlFor="code" error={error}>
