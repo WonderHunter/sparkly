@@ -13,6 +13,7 @@ const validBasics = {
   videoUrl: "https://youtu.be/216_5nu4aVQ",
   gameUrl: "",
   repoUrl: "https://github.com/mmi/neon",
+  siteUrl: "https://neon-pusher.mmi-troyes.fr",
   coverUrl: "",
   logoUrl: "",
 };
@@ -39,6 +40,12 @@ describe("basicsSchema", () => {
 
   it("refuse une URL sans protocole", () => {
     expect(basicsSchema.safeParse({ ...validBasics, gameUrl: "monjeu.fr" }).success).toBe(false);
+    expect(basicsSchema.safeParse({ ...validBasics, siteUrl: "javascript:alert(1)" }).success).toBe(false);
+  });
+
+  it("garde le site de gestion / promotion, vide devient null", () => {
+    expect(basicsSchema.parse(validBasics).siteUrl).toBe("https://neon-pusher.mmi-troyes.fr");
+    expect(basicsSchema.parse({ ...validBasics, siteUrl: "  " }).siteUrl).toBeNull();
   });
 });
 

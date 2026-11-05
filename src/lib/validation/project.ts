@@ -42,6 +42,7 @@ export const basicsSchema = z
     videoUrl: optionalUrl.refine((v) => v === null || parseVideoUrl(v) !== null, "Seules les vidéos YouTube ou Vimeo sont acceptées."),
     gameUrl: optionalUrl,
     repoUrl: optionalUrl,
+    siteUrl: optionalUrl,
     coverUrl: optionalUrl,
     logoUrl: optionalUrl,
   })
