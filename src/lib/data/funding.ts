@@ -7,18 +7,21 @@ export interface FundingSettings {
   budget: number;
   goal: number;
   maxProjectsPerStudent: number | null;
+  /** Les enseignant·es peuvent joindre un mot (commentaire) à chaque financement. */
+  commentsEnabled: boolean;
 }
 
 export const getFundingSettings = cache(async (): Promise<FundingSettings> => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("app_settings")
-    .select("teacher_annual_budget, funding_goal, max_projects_per_student")
+    .select("teacher_annual_budget, funding_goal, max_projects_per_student, funding_comments_enabled")
     .single();
   return {
     budget: data?.teacher_annual_budget ?? 120000,
     goal: data?.funding_goal ?? 10000,
     maxProjectsPerStudent: data?.max_projects_per_student ?? null,
+    commentsEnabled: data?.funding_comments_enabled ?? true,
   };
 });
 
@@ -33,19 +36,24 @@ export interface Investment {
   id: string;
   amount: number;
   school_year: string;
+  created_at: string;
   updated_at: string;
   investor: PublicProfile | null;
+  /** Mot joint au financement (commentaire relié), s'il y en a un. */
+  message: { id: string; body: string } | null;
 }
 
-/** Financeurs d'un projet, du plus gros montant au plus petit. */
+/** Financements d'un projet, du plus récent au plus ancien (un·e enseignant·e peut en avoir plusieurs). */
 export const listInvestments = cache(async (projectId: string): Promise<Investment[]> => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("investments")
-    .select("id, amount, school_year, updated_at, investor:profiles(id, username, display_name, avatar_url, role)")
+    .select(
+      "id, amount, school_year, created_at, updated_at, investor:profiles(id, username, display_name, avatar_url, role), comments(id, body)",
+    )
     .eq("project_id", projectId)
-    .order("amount", { ascending: false });
-  return (data ?? []) as Investment[];
+    .order("created_at", { ascending: false });
+  return (data ?? []).map(({ comments, ...inv }) => ({ ...inv, message: comments[0] ?? null })) as Investment[];
 });
 
 export interface TeacherBudget {

@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { EyeOff, Trash2 } from "lucide-react";
+import { EyeOff, HandCoins, Trash2 } from "lucide-react";
 import { deleteComment, setCommentHidden } from "@/app/p/[slug]/actions";
 import { ButtonLink } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Avatar, Badge } from "@/components/ui/misc";
 import type { Viewer } from "@/lib/auth";
 import type { CommentThread, CommentWithAuthor } from "@/lib/data/projects";
+import { formatEuros } from "@/lib/domain/funding";
 import { ROLE_LABEL } from "@/lib/types";
 import { cn, formatRelative } from "@/lib/utils";
 import { CommentForm, ReportButton } from "./comment-form";
@@ -98,6 +99,11 @@ function CommentItem({ comment, slug, viewer }: { comment: CommentWithAuthor; sl
             <span className="font-semibold text-muted">Compte supprimé</span>
           )}
           {author && author.role !== "student" && <Badge tone="spark">{ROLE_LABEL[author.role]}</Badge>}
+          {comment.investment && (
+            <Badge tone="success">
+              <HandCoins className="h-3 w-3" aria-hidden /> A financé {formatEuros(comment.investment.amount)}
+            </Badge>
+          )}
           <time dateTime={comment.created_at} className="text-muted">
             {formatRelative(comment.created_at)}
           </time>

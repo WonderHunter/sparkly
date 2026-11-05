@@ -1,7 +1,7 @@
 -- Financement fictif par les enseignant·es et limite de projets par étudiant·e.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(18);
 
 create or replace function pg_temp.login(p_user uuid) returns void language plpgsql as $$
 begin
@@ -37,10 +37,14 @@ select lives_ok(
 select is(
   (select school_year from public.investments where project_id = '10000000-0000-4000-a000-000000000002'),
   public.current_school_year(), 'l''année universitaire est fixée par la base, pas par le client');
-select throws_ok(
+select lives_ok(
   $$ insert into public.investments (project_id, investor_id, amount, school_year)
      values ('10000000-0000-4000-a000-000000000002', '00000000-0000-4000-a000-000000000001', 1000, '2026-2027') $$,
-  '23505', null, 'un seul financement (modifiable) par prof, projet et année');
+  'un prof peut financer plusieurs fois le même projet');
+select is(
+  (select backers_count from public.project_cards where id = '10000000-0000-4000-a000-000000000002'),
+  1, 'deux financements de la même personne : un seul financeur');
+delete from public.investments where project_id = '10000000-0000-4000-a000-000000000002' and amount = 1000;
 select throws_ok(
   $$ insert into public.investments (project_id, investor_id, amount, school_year)
      values ('10000000-0000-4000-a000-000000000003', '00000000-0000-4000-a000-000000000001', 1000, '2026-2027') $$,

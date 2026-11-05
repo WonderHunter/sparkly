@@ -30,3 +30,31 @@ export function parseEuros(input: string): number {
   const cleaned = input.replace(/[\s  €]/g, "").replace(/,\d{1,2}$/, "").replace(/\.\d{1,2}$/, "");
   return /^\d+$/.test(cleaned) ? Number(cleaned) : Number.NaN;
 }
+
+/** Un·e enseignant·e et le total de ses financements sur un projet. */
+export interface BackerTotal<T> {
+  investor: T;
+  total: number;
+  count: number;
+}
+
+/**
+ * Un·e enseignant·e peut financer plusieurs fois le même projet : on regroupe par personne,
+ * du plus gros total au plus petit.
+ */
+export function groupByInvestor<T extends { id: string }>(
+  investments: { amount: number; investor: T | null }[],
+): BackerTotal<T>[] {
+  const totals = new Map<string, BackerTotal<T>>();
+  for (const inv of investments) {
+    if (!inv.investor) continue;
+    const current = totals.get(inv.investor.id);
+    if (current) {
+      current.total += inv.amount;
+      current.count += 1;
+    } else {
+      totals.set(inv.investor.id, { investor: inv.investor, total: inv.amount, count: 1 });
+    }
+  }
+  return [...totals.values()].sort((a, b) => b.total - a.total);
+}

@@ -15,7 +15,7 @@ export default async function AdminSettings() {
   const [{ data: settings }, { data: adminEmails }, { data: domains }, { data: categories }] = await Promise.all([
     supabase
       .from("app_settings")
-      .select("school_year, default_starts_on, default_ends_on, teacher_annual_budget, funding_goal, max_projects_per_student")
+      .select("school_year, default_starts_on, default_ends_on, teacher_annual_budget, funding_goal, max_projects_per_student, funding_comments_enabled")
       .single(),
     // admin_emails n'est lisible que via cette fonction réservée aux admins.
     supabase.rpc("admin_bootstrap_emails"),
@@ -64,6 +64,20 @@ export default async function AdminSettings() {
               <Input id="maxProjects" name="maxProjects" type="number" min={1} max={20} defaultValue={settings?.max_projects_per_student ?? ""} placeholder="Illimité" />
             </Field>
           </div>
+          <label className="flex items-start gap-3 rounded-xl border border-border p-4 text-sm">
+            <input
+              type="checkbox"
+              name="fundingComments"
+              defaultChecked={settings?.funding_comments_enabled ?? true}
+              className="mt-0.5 h-4 w-4 accent-spark"
+            />
+            <span>
+              <span className="block font-semibold">Les enseignant·es peuvent joindre un mot à leur financement</span>
+              <span className="text-muted">
+                Il est publié dans les commentaires du projet avec un badge « A financé ». Désactivé, seuls les montants restent possibles.
+              </span>
+            </span>
+          </label>
         </ActionForm>
       </EditorSection>
 
