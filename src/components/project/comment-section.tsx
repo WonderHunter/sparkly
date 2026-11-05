@@ -2,6 +2,7 @@ import Link from "next/link";
 import { EyeOff, Trash2 } from "lucide-react";
 import { deleteComment, setCommentHidden } from "@/app/p/[slug]/actions";
 import { ButtonLink } from "@/components/ui/button";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Avatar, Badge } from "@/components/ui/misc";
 import type { Viewer } from "@/lib/auth";
 import type { CommentThread, CommentWithAuthor } from "@/lib/data/projects";
@@ -111,11 +112,19 @@ function CommentItem({ comment, slug, viewer }: { comment: CommentWithAuthor; sl
       {viewer && (
         <div className="mt-2 flex gap-4 pl-11 text-xs font-semibold text-muted">
           {(isAuthor || viewer.isStaff) && (
-            <form action={deleteComment.bind(null, slug, comment.id)}>
-              <button type="submit" className="inline-flex items-center gap-1 hover:text-danger">
-                <Trash2 className="h-3.5 w-3.5" /> Supprimer
-              </button>
-            </form>
+            <ConfirmDelete
+              action={deleteComment.bind(null, slug, comment.id)}
+              title="Supprimer ce commentaire ?"
+              description={
+                isAuthor
+                  ? "Ton commentaire et les réponses qu'il a reçues disparaîtront de la page du projet."
+                  : `Le commentaire de ${comment.author?.display_name ?? "ce compte"} et ses réponses disparaîtront. Pour le cacher sans le perdre, préfère « Masquer ».`
+              }
+              confirmLabel="Supprimer le commentaire"
+              triggerClassName="inline-flex items-center gap-1 hover:text-danger"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Supprimer
+            </ConfirmDelete>
           )}
           {viewer.isStaff && (
             <form action={setCommentHidden.bind(null, slug, comment.id, !hidden)}>

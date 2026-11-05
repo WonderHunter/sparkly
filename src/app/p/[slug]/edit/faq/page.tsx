@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { EditorSection } from "@/components/editor/editor-section";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Field, Input, Textarea } from "@/components/ui/form";
 import { getEditContext } from "@/lib/data/editor";
 import { listFaqs } from "@/lib/data/projects";
@@ -21,11 +22,16 @@ export default async function FaqTab({ params }: PageProps<"/p/[slug]/edit/faq">
                 <p className="font-semibold">{faq.question}</p>
                 <p className="mt-1 text-sm whitespace-pre-line text-muted">{faq.answer}</p>
               </div>
-              <form action={deleteFaq.bind(null, project.slug, faq.id)}>
-                <button type="submit" aria-label={`Supprimer la question « ${faq.question} »`} className="rounded-full p-2 text-muted hover:bg-danger-soft hover:text-danger">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </form>
+              <ConfirmDelete
+                action={deleteFaq.bind(null, project.slug, faq.id)}
+                title="Supprimer cette question ?"
+                description={`« ${faq.question} » et sa réponse disparaîtront de la FAQ du projet.`}
+                confirmLabel="Supprimer la question"
+                triggerLabel={`Supprimer la question « ${faq.question} »`}
+                triggerClassName="rounded-full p-2 text-muted hover:bg-danger-soft hover:text-danger"
+              >
+                <Trash2 className="h-4 w-4" />
+              </ConfirmDelete>
             </li>
           ))}
         </ul>
