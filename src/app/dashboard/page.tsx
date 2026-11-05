@@ -285,16 +285,19 @@ function TeacherBudgetCard({ budget }: { budget: TeacherBudget }) {
       </div>
       {budget.investments.length > 0 ? (
         <ul className="mt-5 divide-y divide-border">
-          {budget.investments.map((inv) => (
-            <li key={inv.id} className="flex items-center justify-between gap-4 py-2.5 text-sm">
-              {inv.project ? (
-                <Link href={`/p/${inv.project.slug}`} className="font-semibold hover:text-spark-strong">
-                  {inv.project.title}
+          {byProject(budget.investments).map((row) => (
+            <li key={row.key} className="flex items-center justify-between gap-4 py-2.5 text-sm">
+              {row.project ? (
+                <Link href={`/p/${row.project.slug}`} className="font-semibold hover:text-spark-strong">
+                  {row.project.title}
                 </Link>
               ) : (
                 <span className="text-muted">Projet supprimé</span>
               )}
-              <span className="font-bold text-success">{formatEuros(inv.amount)}</span>
+              <span className="text-right">
+                <span className="font-bold text-success">{formatEuros(row.total)}</span>
+                {row.count > 1 && <span className="block text-xs text-muted">en {row.count} fois</span>}
+              </span>
             </li>
           ))}
         </ul>
@@ -303,4 +306,20 @@ function TeacherBudgetCard({ budget }: { budget: TeacherBudget }) {
       )}
     </Card>
   );
+}
+
+/** Un·e enseignant·e peut financer plusieurs fois un projet : une ligne par projet, avec le total. */
+function byProject(investments: TeacherBudget["investments"]) {
+  const rows = new Map<string, { key: string; project: TeacherBudget["investments"][number]["project"]; total: number; count: number }>();
+  for (const inv of investments) {
+    const key = inv.project?.id ?? inv.id;
+    const row = rows.get(key);
+    if (row) {
+      row.total += inv.amount;
+      row.count += 1;
+    } else {
+      rows.set(key, { key, project: inv.project, total: inv.amount, count: 1 });
+    }
+  }
+  return [...rows.values()].sort((a, b) => b.total - a.total);
 }

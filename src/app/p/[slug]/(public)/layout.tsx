@@ -40,14 +40,19 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
   const { project, members, stats } = page;
   const isMember = Boolean(viewer && members.some((m) => m.user_id === viewer.id));
   const isTeacher = viewer?.profile.role === "teacher" && !viewer.isSuspended;
-  const [following, investments, { goal }, budget] = await Promise.all([
+  const [following, investments, { goal, commentsEnabled }, budget] = await Promise.all([
     isFollowing(project.id, viewer?.id),
     listInvestments(project.id),
     getFundingSettings(),
     isTeacher ? getTeacherBudget(viewer.id) : Promise.resolve(null),
   ]);
   const funded = investments.reduce((sum, i) => sum + i.amount, 0);
-  const myInvestment = viewer ? investments.find((i) => i.investor?.id === viewer.id && i.school_year === budget?.schoolYear) : undefined;
+  const backers = new Set(investments.map((i) => i.investor?.id)).size;
+  const mine = viewer
+    ? investments
+        .filter((i) => i.investor?.id === viewer.id && i.school_year === budget?.schoolYear)
+        .map((i) => ({ id: i.id, amount: i.amount, created_at: i.created_at, message: i.message?.body ?? null }))
+    : [];
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date());
   const fundable = project.status === "published" && project.ends_on >= today;
   const video = parseVideoUrl(project.video_url);
@@ -96,15 +101,17 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
         </div>
 
         <aside className="flex flex-col gap-6">
-          <FundingPanel amount={funded} goal={goal} backers={investments.length} />
+          <FundingPanel amount={funded} goal={goal} backers={backers} />
           {isTeacher && budget && (
             <FundForm
               slug={project.slug}
               projectId={project.id}
-              current={myInvestment ? { id: myInvestment.id, amount: myInvestment.amount } : null}
+              mine={mine}
               remaining={budget.remaining}
+              budget={budget.budget}
               schoolYear={budget.schoolYear}
               fundable={fundable}
+              allowMessage={commentsEnabled}
             />
           )}
           <hr className="border-border" />

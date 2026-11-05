@@ -39,14 +39,14 @@ export type Database = {
                   ]
                 },"app_settings": {
                   Row: {
-                    "admin_emails": (string)[],"default_ends_on": string,"default_starts_on": string,"funding_goal": number,"id": boolean,"max_projects_per_student": number | null,"school_year": string,"teacher_annual_budget": number,"updated_at": string
+                    "admin_emails": (string)[],"default_ends_on": string,"default_starts_on": string,"funding_comments_enabled": boolean,"funding_goal": number,"id": boolean,"max_projects_per_student": number | null,"school_year": string,"teacher_annual_budget": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
+                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"funding_comments_enabled"?: boolean,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
+                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"funding_comments_enabled"?: boolean,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -67,14 +67,14 @@ export type Database = {
                   ]
                 },"comments": {
                   Row: {
-                    "author_id": string,"body": string,"created_at": string,"hidden_at": string | null,"id": string,"parent_id": string | null,"post_id": string | null,"project_id": string,"updated_at": string
+                    "author_id": string,"body": string,"created_at": string,"hidden_at": string | null,"id": string,"investment_id": string | null,"parent_id": string | null,"post_id": string | null,"project_id": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_id": string,"body": string,"created_at"?: string,"hidden_at"?: string | null,"id"?: string,"parent_id"?: string | null,"post_id"?: string | null,"project_id": string,"updated_at"?: string
+                    "author_id": string,"body": string,"created_at"?: string,"hidden_at"?: string | null,"id"?: string,"investment_id"?: string | null,"parent_id"?: string | null,"post_id"?: string | null,"project_id": string,"updated_at"?: string
                   }
                   Update: {
-                    "author_id"?: string,"body"?: string,"created_at"?: string,"hidden_at"?: string | null,"id"?: string,"parent_id"?: string | null,"post_id"?: string | null,"project_id"?: string,"updated_at"?: string
+                    "author_id"?: string,"body"?: string,"created_at"?: string,"hidden_at"?: string | null,"id"?: string,"investment_id"?: string | null,"parent_id"?: string | null,"post_id"?: string | null,"project_id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -82,6 +82,12 @@ export type Database = {
       columns: ["author_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "comments_investment_id_fkey"
+      columns: ["investment_id"]
+isOneToOne: false
+      referencedRelation: "investments"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "comments_parent_id_fkey"

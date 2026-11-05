@@ -213,6 +213,7 @@ export async function updateFundingSettings(_prev: FormState, formData: FormData
       teacher_annual_budget: parsed.data.budget,
       funding_goal: parsed.data.goal,
       max_projects_per_student: parsed.data.maxProjects,
+      funding_comments_enabled: formData.get("fundingComments") === "on",
     })
     .eq("id", true);
   if (error) return { error: "Enregistrement impossible." };
