@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatEuros, fundingPercent, parseEuros, schoolYearOf } from "./funding";
+import { formatEuros, fundingPercent, groupByInvestor, parseEuros, schoolYearOf } from "./funding";
 
 const spaces = (s: string) => s.replace(/[  ]/g, " ");
 
@@ -41,5 +41,22 @@ describe("parseEuros", () => {
     expect(parseEuros("abc")).toBeNaN();
     expect(parseEuros("-500")).toBeNaN();
     expect(parseEuros("")).toBeNaN();
+  });
+});
+
+describe("groupByInvestor", () => {
+  it("additionne les financements d'une même personne et trie par total", () => {
+    const anne = { id: "a", name: "Anne" };
+    const marc = { id: "m", name: "Marc" };
+    const grouped = groupByInvestor([
+      { amount: 2000, investor: anne },
+      { amount: 5000, investor: marc },
+      { amount: 4000, investor: anne },
+      { amount: 1000, investor: null },
+    ]);
+    expect(grouped).toEqual([
+      { investor: anne, total: 6000, count: 2 },
+      { investor: marc, total: 5000, count: 1 },
+    ]);
   });
 });

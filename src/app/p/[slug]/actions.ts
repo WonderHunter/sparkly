@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getViewer } from "@/lib/auth";
+import { getFundingSettings } from "@/lib/data/funding";
 import { parseEuros } from "@/lib/domain/funding";
 import { createClient } from "@/lib/supabase/server";
 
@@ -122,48 +123,104 @@ export async function report(_prev: ActionState, formData: FormData): Promise<Ac
 // ---------------------------------------------------------------------------
 const FUNDING_ERRORS = new Set(["SP002", "SP003"]);
 
-/** Crée ou modifie le financement de l'enseignant·e connecté·e pour ce projet. */
+/** Lit le montant et le mot facultatif d'un formulaire de financement. */
+function readFunding(formData: FormData): { amount: number; message: string } | { error: string } {
+  const amount = parseEuros(String(formData.get("amount") ?? ""));
+  if (!Number.isInteger(amount) || amount < 1) return { error: "Indique un montant en euros (nombre entier)." };
+  const message = String(formData.get("message") ?? "").trim();
+  if (message.length > 2000) return { error: "Ton mot fait plus de 2 000 caractères." };
+  return { amount, message };
+}
+
+function fundingError(error: { code?: string; message: string }): ActionState {
+  // Les règles (budget, rôle, projet en cours) sont vérifiées en base.
+  return { error: FUNDING_ERRORS.has(error.code ?? "") ? error.message : "Le financement n'a pas pu être enregistré." };
+}
+
+function refreshFunding(slug: string) {
+  revalidatePath(`/p/${slug}`, "layout");
+  revalidatePath("/discover");
+  revalidatePath("/dashboard");
+}
+
+/**
+ * Nouveau financement de l'enseignant·e connecté·e. Un·e enseignant·e peut financer plusieurs fois
+ * le même projet ; chaque financement peut porter un mot, publié dans les commentaires du projet.
+ */
 export async function invest(slug: string, projectId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
   const viewer = await getViewer();
   if (!viewer) return { error: "Connecte-toi pour financer un projet." };
   if (viewer.profile.role !== "teacher") return { error: "Seul·es les enseignant·es peuvent financer un projet." };
   if (!uuid.safeParse(projectId).success) return { error: "Projet invalide." };
-
-  const amount = parseEuros(String(formData.get("amount") ?? ""));
-  if (!Number.isInteger(amount) || amount < 1) return { error: "Indique un montant en euros (nombre entier)." };
+  const input = readFunding(formData);
+  if ("error" in input) return input;
 
   const supabase = await createClient();
   const { data: schoolYear } = await supabase.rpc("current_school_year");
-  const { data: existing } = await supabase
+  const { data: investment, error } = await supabase
     .from("investments")
+    .insert({ project_id: projectId, investor_id: viewer.id, amount: input.amount, school_year: schoolYear as string })
     .select("id")
-    .eq("project_id", projectId)
-    .eq("investor_id", viewer.id)
-    .eq("school_year", schoolYear as string)
-    .maybeSingle();
+    .single();
+  if (error || !investment) return fundingError(error ?? { message: "" });
 
-  const { error } = existing
-    ? await supabase.from("investments").update({ amount }).eq("id", existing.id)
-    : await supabase
-        .from("investments")
-        .insert({ project_id: projectId, investor_id: viewer.id, amount, school_year: schoolYear as string });
-
-  if (error) {
-    // Les règles (budget, rôle, projet en cours) sont vérifiées en base.
-    return { error: FUNDING_ERRORS.has(error.code ?? "") ? error.message : "Le financement n'a pas pu être enregistré." };
+  let message = "Merci pour ton soutien !";
+  if (input.message) {
+    const { commentsEnabled } = await getFundingSettings();
+    const { error: commentError } = commentsEnabled
+      ? await supabase
+          .from("comments")
+          .insert({ project_id: projectId, author_id: viewer.id, body: input.message, investment_id: investment.id })
+      : { error: null };
+    if (!commentsEnabled || commentError) message = "Financement enregistré, mais ton mot n'a pas pu être publié.";
   }
-  revalidatePath(`/p/${slug}`, "layout");
-  revalidatePath("/discover");
-  revalidatePath("/dashboard");
-  return { ok: true, message: existing ? "Financement mis à jour." : "Merci pour ton soutien !" };
+  refreshFunding(slug);
+  return { ok: true, message };
+}
+
+/** Modifie le montant et le mot d'un de ses financements. Vider le mot retire le commentaire. */
+export async function updateInvestment(
+  slug: string,
+  investmentId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const viewer = await getViewer();
+  if (!viewer || !uuid.safeParse(investmentId).success) return { error: "Financement introuvable." };
+  const input = readFunding(formData);
+  if ("error" in input) return input;
+
+  const supabase = await createClient();
+  const { data: investment, error } = await supabase
+    .from("investments")
+    .update({ amount: input.amount })
+    .eq("id", investmentId)
+    .eq("investor_id", viewer.id)
+    .select("id, project_id, comments(id)")
+    .maybeSingle();
+  if (error) return fundingError(error);
+  if (!investment) return { error: "Ce financement ne peut plus être modifié." };
+
+  const comment = investment.comments[0];
+  const { commentsEnabled } = await getFundingSettings();
+  if (!input.message && comment) {
+    await supabase.from("comments").delete().eq("id", comment.id);
+  } else if (input.message && comment) {
+    await supabase.from("comments").update({ body: input.message }).eq("id", comment.id);
+  } else if (input.message && commentsEnabled) {
+    await supabase
+      .from("comments")
+      .insert({ project_id: investment.project_id, author_id: viewer.id, body: input.message, investment_id: investment.id });
+  }
+  refreshFunding(slug);
+  return { ok: true, message: "Financement mis à jour." };
 }
 
 export async function withdrawInvestment(slug: string, investmentId: string) {
   const viewer = await getViewer();
   if (!viewer || !uuid.safeParse(investmentId).success) return;
   const supabase = await createClient();
+  // Le mot relié (commentaire) part avec le financement (on delete cascade).
   await supabase.from("investments").delete().eq("id", investmentId);
-  revalidatePath(`/p/${slug}`, "layout");
-  revalidatePath("/discover");
-  revalidatePath("/dashboard");
+  refreshFunding(slug);
 }
