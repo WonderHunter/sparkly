@@ -90,7 +90,7 @@ export async function NotificationBell() {
                       </span>
                       {n.excerpt && (
                         <span className="mt-0.5 block truncate text-sm text-muted">
-                          « {n.excerpt} »
+                          {n.kind === "invitation" ? n.excerpt : `« ${n.excerpt} »`}
                         </span>
                       )}
                       <span className="mt-0.5 block text-xs text-muted">

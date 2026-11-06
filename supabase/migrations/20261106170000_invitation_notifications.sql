@@ -59,3 +59,43 @@ create trigger profiles_notify_pending_invitations
 
 revoke execute on function public.notify_on_invitation() from public, anon, authenticated;
 revoke execute on function public.notify_pending_invitations() from public, anon, authenticated;
+
+-- Une personne invitée voit le projet qui l'invite (même en brouillon) : elle sait ce qu'elle rejoint,
+-- et le tableau de bord comme la notification affichent son titre.
+create or replace function public.is_invited(p_project uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.project_invitations i
+    join auth.users u on u.id = auth.uid()
+    where i.project_id = p_project and i.email = lower(u.email)
+  );
+$$;
+
+create or replace function public.can_view_project(p_project uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select public.project_is_public(p_project)
+      or public.is_member(p_project)
+      or public.is_staff()
+      or public.is_invited(p_project);
+$$;
+
+drop policy "projets: lecture" on public.projects;
+create policy "projets: lecture" on public.projects for select
+  using (
+    status = 'published'
+    or public.is_member(id)
+    or public.is_staff()
+    or public.is_invited(id)
+    -- Permet au créateur de relire la ligne au moment de l'INSERT ... RETURNING.
+    or created_by = auth.uid()
+  );

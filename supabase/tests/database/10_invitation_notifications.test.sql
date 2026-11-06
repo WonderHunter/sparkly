@@ -1,7 +1,7 @@
 -- Notification « X t'invite à rejoindre Y » (triggers sur project_invitations et profiles).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(7);
+select plan(9);
 
 create or replace function pg_temp.login(p_user uuid) returns void language plpgsql as $$
 begin
@@ -32,11 +32,19 @@ select is(
   (select count(*)::int from public.notifications where user_id = '00000000-0000-4000-a000-000000000007' and kind = 'invitation'),
   0, 'celui qui invite n''est pas notifié');
 
--- La personne invitée lit sa notification, même si le projet en brouillon lui reste invisible.
+-- La personne invitée lit sa notification et voit le projet en brouillon qui l'invite.
 select pg_temp.login('00000000-0000-4000-a000-000000000005');
 select is(
   (select project_title from public.notifications where kind = 'invitation'),
-  'Rythme du Hall', 'la notification se lit sans voir le projet en brouillon');
+  'Rythme du Hall', 'la personne invitée lit sa notification');
+select is(
+  (select title from public.projects where id = '10000000-0000-4000-a000-000000000003'),
+  'Rythme du Hall', 'la personne invitée voit le projet en brouillon qui l''invite');
+select pg_temp.login('00000000-0000-4000-a000-000000000004');
+select is(
+  (select count(*)::int from public.projects where id = '10000000-0000-4000-a000-000000000003'),
+  0, 'un étudiant non invité ne voit toujours pas le brouillon');
+select pg_temp.login('00000000-0000-4000-a000-000000000005');
 
 -- Elle accepte : l'invitation disparaît, la notification reste (et mène au projet).
 select lives_ok(
