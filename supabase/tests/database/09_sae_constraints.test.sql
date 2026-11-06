@@ -1,7 +1,7 @@
--- Contraintes de la SAÉ : listes, conversion des anciens genres, droits (profs/admins seulement).
+-- Contraintes de la SAÉ : listes, conversion des anciens genres, plateforme, droits (profs/admins seulement).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(15);
 
 create or replace function pg_temp.login(p_user uuid) returns void language plpgsql as $$
 begin
@@ -23,6 +23,7 @@ select is((select count(*)::int from public.emotions), 15, '15 émotions');
 select is(
   (select count(*)::int from public.categories where slug in ('action', 'arcade', 'puzzle', 'shoot', 'party', 'autre')),
   0, 'les anciens genres sans équivalent ont disparu');
+select is((select count(*)::int from public.projects where platform = 'web'), 0, 'plus aucun projet « web »');
 
 -- Neon Pusher (1001) : alice 0002 (owner). Prof Démo 0001, dylan 0005.
 -- Un membre du groupe ne peut pas changer ses contraintes, même par l'API.
@@ -31,11 +32,18 @@ select throws_ok(
   $$ update public.projects set emotion_id = (select id from public.emotions where slug = 'rage')
      where id = '10000000-0000-4000-a000-000000000001' $$,
   '42501', null, 'un étudiant ne change pas l''émotion imposée');
+select throws_ok(
+  $$ update public.projects set platform = 'tv' where id = '10000000-0000-4000-a000-000000000001' $$,
+  '42501', null, 'un étudiant ne change pas la plateforme');
+select throws_ok(
+  $$ insert into public.projects (slug, title, platform, created_by)
+     values ('plateforme-choisie', 'Plateforme choisie', 'borne', '00000000-0000-4000-a000-000000000002') $$,
+  '42501', null, 'un étudiant ne choisit pas la plateforme à la création');
 select lives_ok(
   $$ update public.projects set pitch = 'Nouvelle accroche' where id = '10000000-0000-4000-a000-000000000001' $$,
   'le groupe modifie toujours le reste de son projet');
 select throws_ok(
-  $$ select public.set_project_constraints('10000000-0000-4000-a000-000000000001', null, null, null) $$,
+  $$ select public.set_project_constraints('10000000-0000-4000-a000-000000000001', null, null, null, null) $$,
   '42501', null, 'un étudiant ne peut pas appeler set_project_constraints');
 
 -- Un prof fixe les trois contraintes, sans être membre du projet.
@@ -43,14 +51,18 @@ select pg_temp.login('00000000-0000-4000-a000-000000000001');
 select lives_ok(
   $$ select public.set_project_constraints(
        '10000000-0000-4000-a000-000000000001',
+       'cocktail',
        (select id from public.categories where slug = 'plateforme'),
        (select id from public.characters where slug = 'bougie'),
        (select id from public.emotions where slug = 'apaisement')) $$,
   'un prof fixe les contraintes');
 select results_eq(
-  $$ select category_slug, character_slug, emotion_slug from public.project_cards where id = '10000000-0000-4000-a000-000000000001' $$,
-  $$ values ('plateforme'::text, 'bougie'::text, 'apaisement'::text) $$,
-  'les cartes projet exposent les trois contraintes');
+  $$ select platform::text, category_slug, character_slug, emotion_slug from public.project_cards where id = '10000000-0000-4000-a000-000000000001' $$,
+  $$ values ('cocktail'::text, 'plateforme'::text, 'bougie'::text, 'apaisement'::text) $$,
+  'les cartes projet exposent les quatre contraintes');
+select throws_ok(
+  $$ select public.set_project_constraints('10000000-0000-4000-a000-000000000001', 'web', null, null, null) $$,
+  '22023', null, 'la plateforme « web » n''est plus proposée');
 
 -- Retirer une entrée d'une liste remet les projets à « à définir ».
 select pg_temp.login('00000000-0000-4000-a000-000000000008');

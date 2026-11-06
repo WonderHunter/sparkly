@@ -447,14 +447,14 @@ isOneToOne: false
                   ]
                 },"projects": {
                   Row: {
-                    "category_id": number | null,"character_id": number | null,"cover_url": string | null,"created_at": string,"created_by": string | null,"emotion_id": number | null,"ends_on": string,"fts": unknown,"game_url": string | null,"id": string,"logo_url": string | null,"pitch": string,"platform": Database["public"]['Enums']["platform"],"progress": number,"published_at": string | null,"repo_url": string | null,"site_url": string | null,"slug": string,"starts_on": string,"status": Database["public"]['Enums']["project_status"],"story": string,"title": string,"updated_at": string,"video_url": string | null
+                    "category_id": number | null,"character_id": number | null,"cover_url": string | null,"created_at": string,"created_by": string | null,"emotion_id": number | null,"ends_on": string,"fts": unknown,"game_url": string | null,"id": string,"logo_url": string | null,"pitch": string,"platform": Database["public"]['Enums']["platform"] | null,"progress": number,"published_at": string | null,"repo_url": string | null,"site_url": string | null,"slug": string,"starts_on": string,"status": Database["public"]['Enums']["project_status"],"story": string,"title": string,"updated_at": string,"video_url": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "category_id"?: number | null,"character_id"?: number | null,"cover_url"?: string | null,"created_at"?: string,"created_by"?: string | null,"emotion_id"?: number | null,"ends_on"?: string,"fts"?: never,"game_url"?: string | null,"id"?: string,"logo_url"?: string | null,"pitch"?: string,"platform"?: Database["public"]['Enums']["platform"],"progress"?: number,"published_at"?: string | null,"repo_url"?: string | null,"site_url"?: string | null,"slug": string,"starts_on"?: string,"status"?: Database["public"]['Enums']["project_status"],"story"?: string,"title": string,"updated_at"?: string,"video_url"?: string | null
+                    "category_id"?: number | null,"character_id"?: number | null,"cover_url"?: string | null,"created_at"?: string,"created_by"?: string | null,"emotion_id"?: number | null,"ends_on"?: string,"fts"?: never,"game_url"?: string | null,"id"?: string,"logo_url"?: string | null,"pitch"?: string,"platform"?: Database["public"]['Enums']["platform"] | null,"progress"?: number,"published_at"?: string | null,"repo_url"?: string | null,"site_url"?: string | null,"slug": string,"starts_on"?: string,"status"?: Database["public"]['Enums']["project_status"],"story"?: string,"title": string,"updated_at"?: string,"video_url"?: string | null
                   }
                   Update: {
-                    "category_id"?: number | null,"character_id"?: number | null,"cover_url"?: string | null,"created_at"?: string,"created_by"?: string | null,"emotion_id"?: number | null,"ends_on"?: string,"fts"?: never,"game_url"?: string | null,"id"?: string,"logo_url"?: string | null,"pitch"?: string,"platform"?: Database["public"]['Enums']["platform"],"progress"?: number,"published_at"?: string | null,"repo_url"?: string | null,"site_url"?: string | null,"slug"?: string,"starts_on"?: string,"status"?: Database["public"]['Enums']["project_status"],"story"?: string,"title"?: string,"updated_at"?: string,"video_url"?: string | null
+                    "category_id"?: number | null,"character_id"?: number | null,"cover_url"?: string | null,"created_at"?: string,"created_by"?: string | null,"emotion_id"?: number | null,"ends_on"?: string,"fts"?: never,"game_url"?: string | null,"id"?: string,"logo_url"?: string | null,"pitch"?: string,"platform"?: Database["public"]['Enums']["platform"] | null,"progress"?: number,"published_at"?: string | null,"repo_url"?: string | null,"site_url"?: string | null,"slug"?: string,"starts_on"?: string,"status"?: Database["public"]['Enums']["project_status"],"story"?: string,"title"?: string,"updated_at"?: string,"video_url"?: string | null
                   }
                   Relationships: [
                     {
@@ -614,7 +614,7 @@ isOneToOne: false
 { Args: { "p_date": string }; Returns: string
                            },
 "set_project_constraints":
-{ Args: { "p_category": number,"p_character": number,"p_emotion": number,"p_project": string }; Returns: undefined
+{ Args: { "p_category": number,"p_character": number,"p_emotion": number,"p_platform": Database["public"]['Enums']["platform"],"p_project": string }; Returns: undefined
                            },
 "title_conflicts":
 { Args: { "p_exclude"?: string,"p_title": string }; Returns: {

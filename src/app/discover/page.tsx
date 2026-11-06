@@ -7,7 +7,7 @@ import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/misc";
 import { getFundingSettings } from "@/lib/data/funding";
 import { listCategories, listCharacters, listEmotions, listProjects, type SortKey, type StateFilter } from "@/lib/data/projects";
-import { PLATFORM_LABEL, type Platform } from "@/lib/types";
+import { PLATFORM_LABEL, PLATFORM_OPTIONS } from "@/lib/types";
 import { pluralize } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Découvrir les projets" };
@@ -32,7 +32,7 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
   const category = pick(params.category, categories.map((c) => c.slug));
   const character = pick(params.character, characters.map((c) => c.slug));
   const emotion = pick(params.emotion, emotions.map((e) => e.slug));
-  const platform = pick(params.platform, Object.keys(PLATFORM_LABEL) as Platform[]);
+  const platform = pick(params.platform, PLATFORM_OPTIONS);
   const state = pick(params.state, Object.keys(STATES) as StateFilter[]) ?? "all";
   const sort = pick(params.sort, Object.keys(SORTS) as SortKey[]) ?? "recent";
 
@@ -87,7 +87,7 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
           defaultValue={platform ?? ""}
           options={[
             { value: "", label: "Plateforme" },
-            ...Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label })),
+            ...PLATFORM_OPTIONS.map((value) => ({ value, label: PLATFORM_LABEL[value] })),
           ]}
         />
         <label className="sr-only" htmlFor="state">
