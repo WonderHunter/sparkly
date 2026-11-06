@@ -5,17 +5,23 @@ import { TriangleAlert } from "lucide-react";
 import { SlugField } from "@/components/editor/slug-field";
 import { Field, FormMessage, Input, Textarea } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
-import { findTitleConflicts, listCategories } from "@/lib/data/projects";
+import { findTitleConflicts, listCategories, listCharacters, listEmotions } from "@/lib/data/projects";
 import { getSiteUrl } from "@/lib/site-url";
 import { getEditContext } from "@/lib/data/editor";
 import { PLATFORM_LABEL } from "@/lib/types";
 import { EditorSection } from "@/components/editor/editor-section";
+import { ConstraintBadges } from "@/components/project/constraints";
 import { updateBasics } from "../actions";
 
 export default async function BasicsTab({ params, searchParams }: PageProps<"/p/[slug]/edit/basics">) {
   const { slug } = await params;
   const { saved } = await searchParams;
-  const [{ project }, categories] = await Promise.all([getEditContext(slug), listCategories()]);
+  const [{ project }, categories, characters, emotions] = await Promise.all([
+    getEditContext(slug),
+    listCategories(),
+    listCharacters(),
+    listEmotions(),
+  ]);
   const [conflicts, siteUrl] = await Promise.all([findTitleConflicts(project.title, project.id), getSiteUrl()]);
 
   return (
@@ -63,24 +69,26 @@ export default async function BasicsTab({ params, searchParams }: PageProps<"/p/
           <FieldError name="pitch" />
         </Field>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Plateforme" htmlFor="platform">
-            <Select
-              id="platform"
-              name="platform"
-              defaultValue={project.platform}
-              options={Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label }))}
-            />
-          </Field>
-          <Field label="Genre" htmlFor="categoryId">
-            <Select
-              id="categoryId"
-              name="categoryId"
-              defaultValue={project.category_id?.toString() ?? ""}
-              options={[{ value: "", label: "Non précisé" }, ...categories.map((c) => ({ value: String(c.id), label: c.name }))]}
-            />
-            <FieldError name="categoryId" />
-          </Field>
+        <Field label="Plateforme" htmlFor="platform">
+          <Select
+            id="platform"
+            name="platform"
+            defaultValue={project.platform}
+            options={Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label }))}
+          />
+        </Field>
+
+        <div role="group" aria-labelledby="constraints-label" className="rounded-xl border border-border bg-surface-muted/60 p-4">
+          <p id="constraints-label" className="text-sm font-semibold">
+            Contraintes de la SAÉ
+          </p>
+          <p className="mb-3 text-xs text-muted">Fixées par l&apos;équipe pédagogique : demande à un·e enseignant·e pour les changer.</p>
+          <ConstraintBadges
+            category={categories.find((c) => c.id === project.category_id)}
+            character={characters.find((c) => c.id === project.character_id)}
+            emotion={emotions.find((e) => e.id === project.emotion_id)}
+            showMissing
+          />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">

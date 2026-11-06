@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { FolderGit2, Gamepad2, Heart, Pencil, Users } from "lucide-react";
+import { ConstraintBadges, ConstraintsForm } from "@/components/project/constraints";
 import { DraftBanner } from "@/components/project/draft-notice";
 import { FundForm } from "@/components/project/fund-form";
 import { FundingPanel } from "@/components/project/funding-panel";
@@ -11,7 +12,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge, SparkMark } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
 import { getFundingSettings, getTeacherBudget, listInvestments } from "@/lib/data/funding";
-import { findRenamedSlug, getProjectPage, isFollowing } from "@/lib/data/projects";
+import { findRenamedSlug, getProjectPage, isFollowing, listCategories, listCharacters, listEmotions } from "@/lib/data/projects";
 import { parseVideoUrl } from "@/lib/domain/video";
 import { PLATFORM_LABEL } from "@/lib/types";
 import { pluralize } from "@/lib/utils";
@@ -40,11 +41,20 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
   const { project, members, stats } = page;
   const isMember = Boolean(viewer && members.some((m) => m.user_id === viewer.id));
   const isTeacher = viewer?.profile.role === "teacher" && !viewer.isSuspended;
-  const [following, investments, { goal, commentsEnabled }, budget] = await Promise.all([
+  const isStaff = Boolean(viewer?.isStaff && !viewer.isSuspended);
+  const [following, investments, { goal, commentsEnabled }, budget, constraintOptions] = await Promise.all([
     isFollowing(project.id, viewer?.id),
     listInvestments(project.id),
     getFundingSettings(),
     isTeacher ? getTeacherBudget(viewer.id) : Promise.resolve(null),
+    // Listes des contraintes, seulement pour l'équipe pédagogique qui peut les fixer.
+    isStaff
+      ? Promise.all([listCategories(), listCharacters(), listEmotions()]).then(([categories, characters, emotions]) => ({
+          categories,
+          characters,
+          emotions,
+        }))
+      : Promise.resolve(null),
   ]);
   const funded = investments.reduce((sum, i) => sum + i.amount, 0);
   const backers = new Set(investments.map((i) => i.investor?.id)).size;
@@ -60,7 +70,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
 
   return (
     <div>
-      <DraftBanner project={project} isMember={isMember} isStaff={Boolean(viewer?.isStaff && !viewer.isSuspended)} />
+      <DraftBanner project={project} isMember={isMember} isStaff={isStaff} />
 
       <header className="mx-auto max-w-7xl px-4 pt-10 text-center sm:px-6">
         <div className="mx-auto flex max-w-3xl flex-col items-center">
@@ -75,8 +85,13 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
           {project.pitch && <p className="mt-3 text-lg text-muted sm:text-xl">{project.pitch}</p>}
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             <Badge>{PLATFORM_LABEL[project.platform]}</Badge>
-            {project.category && <Badge>{project.category.name}</Badge>}
           </div>
+          <ConstraintBadges
+            category={project.category}
+            character={project.character}
+            emotion={project.emotion}
+            className="mt-3 justify-center"
+          />
         </div>
       </header>
 
@@ -168,6 +183,14 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
             )}
           </div>
           {project.site_url && <SiteCard url={project.site_url} />}
+          {constraintOptions && (
+            <ConstraintsForm
+              slug={project.slug}
+              projectId={project.id}
+              current={{ category: project.category_id, character: project.character_id, emotion: project.emotion_id }}
+              {...constraintOptions}
+            />
+          )}
           <p className="flex items-center gap-1.5 text-xs text-muted">
             <Users className="h-3.5 w-3.5" /> Projet de groupe · {pluralize(members.length, "membre")}
           </p>

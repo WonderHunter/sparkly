@@ -162,26 +162,37 @@ export async function removeDomain(domain: string) {
   revalidatePath("/admin/settings");
 }
 
-export async function addCategory(_prev: FormState, formData: FormData): Promise<FormState> {
+/** Listes des contraintes de la SAÉ gérées par l'admin : types de jeu, personnages, émotions. */
+const CONSTRAINT_LISTS = {
+  categories: { added: "Type de jeu ajouté.", exists: "Ce type de jeu existe déjà." },
+  characters: { added: "Personnage ajouté.", exists: "Ce personnage existe déjà." },
+  emotions: { added: "Émotion ajoutée.", exists: "Cette émotion existe déjà." },
+} as const;
+export type ConstraintList = keyof typeof CONSTRAINT_LISTS;
+const constraintList = z.enum(["categories", "characters", "emotions"]);
+
+export async function addListItem(list: ConstraintList, _prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
-  const name = z.string().trim().min(2, "Nom trop court.").max(40).safeParse(formData.get("name") ?? "");
+  if (!constraintList.safeParse(list).success) return { error: "Liste inconnue." };
+  const name = z.string().trim().min(2, "Nom trop court.").max(60, "60 caractères maximum.").safeParse(formData.get("name") ?? "");
   if (!name.success) return { error: name.error.issues[0].message };
   const slug = slugify(name.data);
   if (!slug) return { error: "Nom invalide." };
   const supabase = await createClient();
-  const { count } = await supabase.from("categories").select("*", { count: "exact", head: true });
-  const { error } = await supabase.from("categories").insert({ name: name.data, slug, position: (count ?? 0) + 1 });
-  if (error) return { error: error.code === "23505" ? "Ce genre existe déjà." : "Ajout impossible." };
-  revalidatePath("/admin/settings");
-  return { ok: true, message: "Genre ajouté." };
+  const { count } = await supabase.from(list).select("*", { count: "exact", head: true });
+  const { error } = await supabase.from(list).insert({ name: name.data, slug, position: (count ?? 0) + 1 });
+  if (error) return { error: error.code === "23505" ? CONSTRAINT_LISTS[list].exists : "Ajout impossible." };
+  revalidatePath("/", "layout");
+  return { ok: true, message: CONSTRAINT_LISTS[list].added };
 }
 
-export async function removeCategory(categoryId: number) {
+/** Retire une entrée : les projets qui l'avaient repassent à « à définir » (on delete set null). */
+export async function removeListItem(list: ConstraintList, id: number) {
   await requireAdmin();
-  if (!Number.isInteger(categoryId)) return;
+  if (!constraintList.safeParse(list).success || !Number.isInteger(id)) return;
   const supabase = await createClient();
-  await supabase.from("categories").delete().eq("id", categoryId);
-  revalidatePath("/admin/settings");
+  await supabase.from(list).delete().eq("id", id);
+  revalidatePath("/", "layout");
 }
 
 // ---------------------------------------------------------------------------

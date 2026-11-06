@@ -117,8 +117,8 @@ describe("ProjectCard", () => {
     created_at: "2026-09-02T00:00:00Z",
     updated_at: "2026-10-10T00:00:00Z",
     category_id: 1,
-    category_slug: "arcade",
-    category_name: "Arcade classique",
+    category_slug: "casino",
+    category_name: "Casino",
     fts: null,
     members_count: 3,
     followers_count: 2,
@@ -127,6 +127,12 @@ describe("ProjectCard", () => {
     last_post_at: null,
     funded_amount: 4500,
     backers_count: 2,
+    character_id: 2,
+    character_slug: "aimant",
+    character_name: "Un aimant",
+    emotion_id: 10,
+    emotion_slug: "defoulement",
+    emotion_name: "Défoulement",
   };
 
   it("montre le titre, l'accroche, l'avancée et les compteurs", () => {
@@ -135,7 +141,7 @@ describe("ProjectCard", () => {
     expect(screen.getByText("Un coin pusher néon.")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Avancée de Neon Pusher" })).toHaveAttribute("aria-valuenow", "42");
     expect(screen.getByText("Borne d'arcade")).toBeInTheDocument();
-    expect(screen.getByText("Arcade classique")).toBeInTheDocument();
+    expect(screen.getByText("Casino")).toBeInTheDocument();
     expect(screen.getByText("3 membres")).toBeInTheDocument();
     expect(screen.getByText("4 devlogs")).toBeInTheDocument();
     // Financement : 4 500 € sur 10 000 €
