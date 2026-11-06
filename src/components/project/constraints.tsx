@@ -1,25 +1,29 @@
 "use client";
 
 import { useActionState } from "react";
-import { Drama, Gamepad2, PersonStanding } from "lucide-react";
+import { Drama, Gamepad2, MonitorSmartphone, PersonStanding } from "lucide-react";
 import { setProjectConstraints, type ActionState } from "@/app/p/[slug]/actions";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { submitKeepingValues } from "@/lib/keep-form-values";
+import { PLATFORM_LABEL, PLATFORM_OPTIONS, type Platform } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Named = { name: string } | null | undefined;
 type Option = { id: number; name: string };
 
-/** Les trois contraintes de la SAÉ, en pastilles (type de jeu, personnage, émotion). */
+/** Les contraintes de la SAÉ, en pastilles (plateforme, type de jeu, personnage, émotion). */
 export function ConstraintBadges({
+  platform,
   category,
   character,
   emotion,
   showMissing = false,
   className,
 }: {
+  /** Libellé de la plateforme (PLATFORM_LABEL), ou null si elle reste à définir. */
+  platform: string | null;
   category: Named;
   character: Named;
   emotion: Named;
@@ -28,6 +32,7 @@ export function ConstraintBadges({
   className?: string;
 }) {
   const items = [
+    { key: "platform", icon: MonitorSmartphone, label: "Plateforme", value: platform ?? undefined },
     { key: "type", icon: Gamepad2, label: "Type de jeu", value: category?.name },
     { key: "character", icon: PersonStanding, label: "Personnage", value: character?.name },
     { key: "emotion", icon: Drama, label: "Émotion", value: emotion?.name },
@@ -53,7 +58,7 @@ export function ConstraintBadges({
   );
 }
 
-/** Carte réservée à l'équipe pédagogique : fixe les trois contraintes d'un projet. */
+/** Carte réservée à l'équipe pédagogique : fixe les quatre contraintes d'un projet. */
 export function ConstraintsForm({
   slug,
   projectId,
@@ -64,7 +69,7 @@ export function ConstraintsForm({
 }: {
   slug: string;
   projectId: string;
-  current: { category: number | null; character: number | null; emotion: number | null };
+  current: { platform: Platform | null; category: number | null; character: number | null; emotion: number | null };
   categories: Option[];
   characters: Option[];
   emotions: Option[];
@@ -84,6 +89,17 @@ export function ConstraintsForm({
           Contraintes de la SAÉ
         </p>
         <p className="text-xs text-muted">Fixées par l&apos;équipe pédagogique, visibles de tous.</p>
+      </div>
+      <div>
+        <label htmlFor="constraint-platform" className="mb-1 block text-xs font-semibold">
+          Plateforme
+        </label>
+        <Select
+          id="constraint-platform"
+          name="platform"
+          defaultValue={current.platform ?? ""}
+          options={[{ value: "", label: "À définir" }, ...PLATFORM_OPTIONS.map((p) => ({ value: p, label: PLATFORM_LABEL[p] }))]}
+        />
       </div>
       {(
         [

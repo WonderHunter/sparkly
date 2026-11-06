@@ -6,7 +6,6 @@ const validBasics = {
   title: "Neon Pusher",
   slug: "neon-pusher",
   pitch: "Un coin pusher néon.",
-  platform: "borne",
   startsOn: "2026-09-01",
   endsOn: "2027-01-31",
   videoUrl: "https://youtu.be/216_5nu4aVQ",
