@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import * as RadixSelect from "@radix-ui/react-select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,10 +34,22 @@ const EMPTY = "__sparkly_empty__";
 const toRadix = (v: string | undefined) => (v === "" ? EMPTY : v);
 const fromRadix = (v: string) => (v === EMPTY ? "" : v);
 
+// Écran tactile (téléphone, tablette) : on utilise le sélecteur natif du système
+// (roue sur iPhone, liste sur Android). Le menu Radix posait des soucis de tap sur mobile.
+const COARSE_POINTER = "(pointer: coarse)";
+function subscribePointer(onChange: () => void) {
+  if (typeof window.matchMedia !== "function") return () => {};
+  const media = window.matchMedia(COARSE_POINTER);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+const isCoarsePointer = () => typeof window.matchMedia === "function" && window.matchMedia(COARSE_POINTER).matches;
+
 /**
- * Menu déroulant Sparkly (remplace le <select> natif du navigateur).
+ * Menu déroulant Sparkly (remplace le <select> natif du navigateur sur ordinateur).
  * Accessible (rôles combobox/listbox, clavier, recherche par frappe) et
  * compatible avec les formulaires classiques grâce à un champ caché.
+ * Sur écran tactile, c'est un <select> natif habillé pareil (voir COARSE_POINTER).
  */
 export function Select({
   id,
@@ -54,11 +66,50 @@ export function Select({
 }: SelectProps) {
   const [internal, setInternal] = useState(defaultValue ?? options[0]?.value ?? "");
   const current = value ?? internal;
+  // false au rendu serveur : le menu Radix s'affiche, puis le natif le remplace sur écran tactile.
+  const native = useSyncExternalStore(subscribePointer, isCoarsePointer, () => false);
 
   function handleChange(next: string) {
     const v = fromRadix(next);
     if (value === undefined) setInternal(v);
     onValueChange?.(v);
+  }
+
+  if (native) {
+    const hasCurrent = options.some((o) => o.value === current);
+    return (
+      <div className={cn("relative", className)}>
+        <select
+          id={id}
+          name={name}
+          value={hasCurrent ? current : ""}
+          onChange={(event) => handleChange(event.target.value)}
+          disabled={disabled}
+          required={required}
+          aria-label={aria["aria-label"]}
+          aria-describedby={aria["aria-describedby"]}
+          aria-invalid={aria["aria-invalid"]}
+          className={cn(
+            // 16 px minimum : en dessous, Safari zoome sur le champ au toucher.
+            "h-11 w-full appearance-none truncate rounded-xl border border-border bg-surface pr-10 pl-3.5 text-base text-foreground",
+            "focus:border-spark focus:ring-3 focus:ring-spark/15 focus:outline-none",
+            "disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger",
+          )}
+        >
+          {!hasCurrent && (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          )}
+          {options.map((option) => (
+            <option key={option.value} value={option.value} disabled={option.disabled}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute top-1/2 right-3.5 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
+      </div>
+    );
   }
 
   return (

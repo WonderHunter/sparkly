@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Select } from "./select";
 
 const OPTIONS = [
@@ -56,5 +56,38 @@ describe("Select (menu déroulant Sparkly)", () => {
     await user.keyboard("{Enter}");
     await user.keyboard("{ArrowDown}{Enter}");
     expect(value()).toBe("borne");
+  });
+});
+
+describe("Select sur écran tactile (sélecteur natif)", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({
+        matches: query === "(pointer: coarse)",
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("utilise un <select> natif, relié à son libellé et au formulaire", async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    const { value } = renderInForm({ defaultValue: "", onValueChange });
+    const select = screen.getByRole("combobox", { name: "Plateforme" });
+    expect(select.tagName).toBe("SELECT");
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+
+    await user.selectOptions(select, "tv");
+    expect(value()).toBe("tv");
+    expect(onValueChange).toHaveBeenCalledWith("tv");
+  });
+
+  it("affiche le texte d'invite tant qu'aucune option ne correspond", () => {
+    renderInForm({ defaultValue: "inconnue", placeholder: "Choisir une plateforme" });
+    expect(screen.getByRole("combobox")).toHaveDisplayValue("Choisir une plateforme");
   });
 });
