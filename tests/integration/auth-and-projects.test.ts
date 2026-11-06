@@ -49,7 +49,7 @@ describe("Cycle de vie d'un projet", () => {
     const slug = `projet-test-${Date.now()}`;
     const { data: project, error } = await client
       .from("projects")
-      .insert({ slug, title: "Projet de test", platform: "borne", created_by: userId })
+      .insert({ slug, title: "Projet de test", created_by: userId })
       .select()
       .single();
     expect(error).toBeNull();
@@ -83,10 +83,16 @@ describe("Cycle de vie d'un projet", () => {
     // Une même personne peut porter plusieurs projets.
     const second = await client
       .from("projects")
-      .insert({ slug: `${slug}-bis`, title: "Second", platform: "tv", created_by: userId })
+      .insert({ slug: `${slug}-bis`, title: "Second", created_by: userId })
       .select("id")
       .single();
     expect(second.error).toBeNull();
+
+    // La plateforme est fixée par l'équipe pédagogique : un étudiant ne peut pas la choisir.
+    const withPlatform = await client
+      .from("projects")
+      .insert({ slug: `${slug}-plateforme`, title: "Plateforme choisie", platform: "borne", created_by: userId });
+    expect(withPlatform.error?.code).toBe("42501");
     const { data: mine } = await client.from("project_members").select("project_id").eq("user_id", userId);
     expect(mine).toHaveLength(2);
   });
@@ -116,7 +122,7 @@ describe("Invitations d'équipe", () => {
     const { data: ownerUser } = await owner.auth.getUser();
     const { data: project } = await owner
       .from("projects")
-      .insert({ slug: `equipe-${Date.now()}`, title: "Équipe", platform: "cocktail", created_by: ownerUser.user!.id })
+      .insert({ slug: `equipe-${Date.now()}`, title: "Équipe", created_by: ownerUser.user!.id })
       .select("id")
       .single();
 
@@ -134,7 +140,7 @@ describe("Invitations d'équipe", () => {
     const { data: mateUser } = await mate.auth.getUser();
     const own = await mate
       .from("projects")
-      .insert({ slug: `perso-${Date.now()}`, title: "Projet perso", platform: "web", created_by: mateUser.user!.id });
+      .insert({ slug: `perso-${Date.now()}`, title: "Projet perso", created_by: mateUser.user!.id });
     expect(own.error).toBeNull();
 
     const { data: invitations } = await mate.from("project_invitations").select("id").eq("email", mateEmail);
