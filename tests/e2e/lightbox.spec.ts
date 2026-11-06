@@ -43,6 +43,13 @@ test("les images d'une actualité s'ouvrent dans la visionneuse, avec précéden
   await page.keyboard.press("Escape");
   await expect(viewer).toBeHidden();
 
+  // Un clic sur l'image la laisse ouverte, un clic sur le fond flouté la ferme.
+  await page.getByRole("button", { name: `Agrandir l'image 1 de « ${title} »` }).click();
+  await viewer.locator("figure img").click();
+  await expect(viewer).toBeVisible();
+  await page.mouse.click(10, 300);
+  await expect(viewer).toBeHidden();
+
   // Depuis la liste des actualités aussi (vignettes).
   await page.goto(`${projectPath}/devlog`);
   await page.getByRole("button", { name: `Agrandir l'image 1 de « ${title} »` }).click();
