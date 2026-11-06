@@ -47,7 +47,7 @@ test.describe("Financement fictif par les enseignant·es", () => {
     await page.getByRole("button", { name: /Modifier le financement de 5\s000\s€/ }).click();
     await page.getByLabel(/Montant \(max/).fill("3000");
     await page.getByLabel("Ton mot (vide pour le retirer)").fill("Le pitch est top, foncez sur la borne !");
-    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
     await expect(gauge).toHaveAttribute("aria-valuenow", "50");
     await expect(page.getByText(/Tes financements · 5\s000\s€/)).toBeVisible();
 

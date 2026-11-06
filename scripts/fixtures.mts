@@ -74,6 +74,8 @@ interface ProjectSpec {
   story: string;
   platform: "borne" | "cocktail" | "tv" | "web";
   category: string;
+  character: string;
+  emotion: string;
   status: "published" | "draft";
   done: number; // jalons terminés
   inProgress: boolean; // le suivant est en cours
@@ -89,7 +91,7 @@ const P = (title: string, body: string) => `<h2>${title}</h2><p>${body}</p>`;
 
 const PROJECTS: ProjectSpec[] = [
   {
-    slug: "orbit-smash", title: "Orbit Smash", platform: "borne", category: "arcade", status: "published",
+    slug: "orbit-smash", title: "Orbit Smash", platform: "borne", category: "plateforme", character: "aimant", emotion: "emerveillement", status: "published",
     pitch: "Lance des comètes autour d'une planète et fais exploser les satellites ennemis en chaîne.",
     story: P("Le concept", "Tu contrôles une planète qui attire tout ce qui passe. Chaque comète lancée suit une orbite que tu dois anticiper : plus la chaîne d'explosions est longue, plus le score grimpe.") +
       "<ul><li>Parties de 3 minutes</li><li>Un joystick, deux boutons</li><li>Difficulté qui accélère toutes les 30 secondes</li></ul>" +
@@ -105,7 +107,7 @@ const PROJECTS: ProjectSpec[] = [
     faqs: [["Combien de joueurs ?", "Un joueur, mais on prépare un mode duel."], ["On peut y jouer sur le web ?", "Oui, une version WebGL sera en ligne en janvier."]],
   },
   {
-    slug: "pixel-fermier", title: "Pixel Fermier", platform: "cocktail", category: "party", status: "published",
+    slug: "pixel-fermier", title: "Pixel Fermier", platform: "cocktail", category: "cooperatif", character: "eponge", emotion: "apaisement", status: "published",
     pitch: "Quatre fermiers, une seule récolte : le premier qui remplit sa grange gagne.",
     story: P("Vue de dessus, quatre côtés", "Pensé pour la table cocktail : chaque joueur a son côté et sa grange. Les légumes poussent au centre, il faut les attraper avant les autres.") +
       P("Ambiance", "Pixel art chaleureux, musique chiptune et beaucoup de petites animations quand on récolte."),
@@ -118,7 +120,7 @@ const PROJECTS: ProjectSpec[] = [
     ],
   },
   {
-    slug: "laser-mirage", title: "Laser Mirage", platform: "tv", category: "puzzle", status: "published",
+    slug: "laser-mirage", title: "Laser Mirage", platform: "tv", category: "reflexion", character: "reflet", emotion: "confusion", status: "published",
     pitch: "Oriente des miroirs avec ton téléphone pour guider le laser jusqu'à la cible.",
     story: P("Jouable avec son téléphone", "Le jeu tourne sur la télé du hall. Les joueurs scannent un QR code et leur téléphone devient une manette pour tourner les miroirs.") +
       P("Pourquoi c'est fun", "Les niveaux se résolvent à plusieurs : il faut se coordonner en criant devant l'écran."),
@@ -134,7 +136,7 @@ const PROJECTS: ProjectSpec[] = [
     faqs: [["Il faut installer une appli ?", "Non, le navigateur du téléphone suffit."]],
   },
   {
-    slug: "cuisine-chaos", title: "Cuisine Chaos", platform: "cocktail", category: "party", status: "published",
+    slug: "cuisine-chaos", title: "Cuisine Chaos", platform: "cocktail", category: "cooperatif", character: "savon", emotion: "panique", status: "published",
     pitch: "Une cuisine en feu, quatre chefs et des commandes qui n'arrêtent pas d'arriver.",
     story: P("Coopératif et bruyant", "Les quatre joueurs partagent une cuisine en vue de dessus. Il faut couper, cuire et servir avant que le client ne parte.") +
       P("La difficulté", "Les commandes s'accélèrent et la cuisine se réorganise toutes les minutes."),
@@ -144,7 +146,7 @@ const PROJECTS: ProjectSpec[] = [
     posts: [[18, "On a trouvé notre concept", "Après trois idées abandonnées, on part sur la cuisine. Ça fait rire tout le monde en playtest papier."]],
   },
   {
-    slug: "gravity-goals", title: "Gravity Goals", platform: "borne", category: "action", status: "published",
+    slug: "gravity-goals", title: "Gravity Goals", platform: "borne", category: "sport", character: "poids-variable", emotion: "defoulement", status: "published",
     pitch: "Du foot en apesanteur : inverse la gravité pour marquer dans le but adverse.",
     story: P("Un duel", "Deux joueurs sur la borne, chacun peut inverser la gravité trois fois par manche. Le ballon devient imprévisible.") +
       "<ul><li>Manches de 90 secondes</li><li>Effets de ralenti sur les buts</li></ul>",
@@ -160,7 +162,7 @@ const PROJECTS: ProjectSpec[] = [
     ],
   },
   {
-    slug: "metro-rush", title: "Métro Rush", platform: "web", category: "course", status: "published",
+    slug: "metro-rush", title: "Métro Rush", platform: "web", category: "course", character: "fumee", emotion: "peur", status: "published",
     pitch: "Trace les lignes de métro plus vite que la foule n'arrive sur les quais.",
     story: P("Un jeu de réflexe et de planification", "Les stations apparaissent, les voyageurs s'impatientent. Relie tout avant la saturation.") +
       P("Sur le web", "Jouable directement dans le navigateur, avec un classement en ligne."),
@@ -173,7 +175,7 @@ const PROJECTS: ProjectSpec[] = [
     ],
   },
   {
-    slug: "comet-runner", title: "Comet Runner", platform: "borne", category: "plateforme", status: "published",
+    slug: "comet-runner", title: "Comet Runner", platform: "borne", category: "plateforme", character: "origami", emotion: "surprise", status: "published",
     pitch: "Cours sur une comète qui se désagrège et saute avant qu'il ne soit trop tard.",
     story: P("Endless runner", "Le sol disparaît derrière toi, la vitesse augmente sans arrêt. Un seul bouton : sauter."),
     done: 1, inProgress: false, palette: ["#10002b", "#e0aaff", "#ff9e00"], motif: "stars",
@@ -182,7 +184,7 @@ const PROJECTS: ProjectSpec[] = [
     posts: [[13, "Le personnage court !", "Animation de course en 8 images, on est assez fiers."]],
   },
   {
-    slug: "beat-blocks", title: "Beat Blocks", platform: "tv", category: "rythme", status: "published",
+    slug: "beat-blocks", title: "Beat Blocks", platform: "tv", category: "rythme", character: "jouet-mecanique", emotion: "drole", status: "published",
     pitch: "Empile des blocs au rythme de la musique, en rythme ou tout s'effondre.",
     story: P("Rythme et équilibre", "Chaque bloc tombe sur le temps : appuie au bon moment pour le poser droit."),
     done: 0, inProgress: true, palette: ["#22223b", "#f72585", "#4cc9f0"], motif: "blocks",
@@ -191,7 +193,7 @@ const PROJECTS: ProjectSpec[] = [
     posts: [],
   },
   {
-    slug: "projet-secret", title: "Projet secret", platform: "borne", category: "shoot", status: "draft",
+    slug: "projet-secret", title: "Projet secret", platform: "borne", category: "combat", character: "pieuvre", emotion: "rage", status: "draft",
     pitch: "On garde la surprise pour l'instant.",
     story: "<p>Brouillon en cours de rédaction.</p>",
     done: 0, inProgress: true, palette: ["#212529", "#adb5bd", "#f8f9fa"], motif: "rings",
@@ -361,7 +363,9 @@ async function main() {
   }
   console.log(`✓ ${students.length} étudiant·es et ${teachers.length} enseignant·es`);
 
-  const categories = must(await db.from("categories").select("id, slug"), "catégories") as { id: number; slug: string }[];
+  const categories = must(await db.from("categories").select("id, slug"), "types de jeu") as { id: number; slug: string }[];
+  const characters = must(await db.from("characters").select("id, slug"), "personnages") as { id: number; slug: string }[];
+  const emotions = must(await db.from("emotions").select("id, slug"), "émotions") as { id: number; slug: string }[];
   const browser = await chromium.launch();
 
   try {
@@ -378,6 +382,8 @@ async function main() {
             story: spec.story,
             platform: spec.platform,
             category_id: categories.find((c) => c.slug === spec.category)?.id ?? null,
+            character_id: characters.find((c) => c.slug === spec.character)?.id ?? null,
+            emotion_id: emotions.find((e) => e.slug === spec.emotion)?.id ?? null,
             created_by: ownerId,
           })
           .select("id")

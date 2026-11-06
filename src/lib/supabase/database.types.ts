@@ -65,6 +65,20 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"characters": {
+                  Row: {
+                    "id": number,"name": string,"position": number,"slug": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: never,"name": string,"position"?: number,"slug": string
+                  }
+                  Update: {
+                    "id"?: never,"name"?: string,"position"?: number,"slug"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"comments": {
                   Row: {
                     "author_id": string,"body": string,"created_at": string,"hidden_at": string | null,"id": string,"investment_id": string | null,"parent_id": string | null,"post_id": string | null,"project_id": string,"updated_at": string
@@ -114,6 +128,20 @@ isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id"]
     }
+                  ]
+                },"emotions": {
+                  Row: {
+                    "id": number,"name": string,"position": number,"slug": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: never,"name": string,"position"?: number,"slug": string
+                  }
+                  Update: {
+                    "id"?: never,"name"?: string,"position"?: number,"slug"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"faqs": {
                   Row: {
@@ -419,14 +447,14 @@ isOneToOne: false
                   ]
                 },"projects": {
                   Row: {
-                    "category_id": number | null,"cover_url": string | null,"created_at": string,"created_by": string | null,"ends_on": string,"fts": unknown,"game_url": string | null,"id": string,"logo_url": string | null,"pitch": string,"platform": Database["public"]['Enums']["platform"],"progress": number,"published_at": string | null,"repo_url": string | null,"site_url": string | null,"slug": string,"starts_on": string,"status": Database["public"]['Enums']["project_status"],"story": string,"title": string,"updated_at": string,"video_url": string | null
+                    "category_id": number | null,"character_id": number | null,"cover_url": string | null,"created_at": string,"created_by": string | null,"emotion_id": number | null,"ends_on": string,"fts": unknown,"game_url": string | null,"id": string,"logo_url": string | null,"pitch": string,"platform": Database["public"]['Enums']["platform"],"progress": number,"published_at": string | null,"repo_url": string | null,"site_url": string | null,"slug": string,"starts_on": string,"status": Database["public"]['Enums']["project_status"],"story": string,"title": string,"updated_at": string,"video_url": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "category_id"?: number | null,"cover_url"?: string | null,"created_at"?: string,"created_by"?: string | null,"ends_on"?: string,"fts"?: never,"game_url"?: string | null,"id"?: string,"logo_url"?: string | null,"pitch"?: string,"platform"?: Database["public"]['Enums']["platform"],"progress"?: number,"published_at"?: string | null,"repo_url"?: string | null,"site_url"?: string | null,"slug": string,"starts_on"?: string,"status"?: Database["public"]['Enums']["project_status"],"story"?: string,"title": string,"updated_at"?: string,"video_url"?: string | null
+                    "category_id"?: number | null,"character_id"?: number | null,"cover_url"?: string | null,"created_at"?: string,"created_by"?: string | null,"emotion_id"?: number | null,"ends_on"?: string,"fts"?: never,"game_url"?: string | null,"id"?: string,"logo_url"?: string | null,"pitch"?: string,"platform"?: Database["public"]['Enums']["platform"],"progress"?: number,"published_at"?: string | null,"repo_url"?: string | null,"site_url"?: string | null,"slug": string,"starts_on"?: string,"status"?: Database["public"]['Enums']["project_status"],"story"?: string,"title": string,"updated_at"?: string,"video_url"?: string | null
                   }
                   Update: {
-                    "category_id"?: number | null,"cover_url"?: string | null,"created_at"?: string,"created_by"?: string | null,"ends_on"?: string,"fts"?: never,"game_url"?: string | null,"id"?: string,"logo_url"?: string | null,"pitch"?: string,"platform"?: Database["public"]['Enums']["platform"],"progress"?: number,"published_at"?: string | null,"repo_url"?: string | null,"site_url"?: string | null,"slug"?: string,"starts_on"?: string,"status"?: Database["public"]['Enums']["project_status"],"story"?: string,"title"?: string,"updated_at"?: string,"video_url"?: string | null
+                    "category_id"?: number | null,"character_id"?: number | null,"cover_url"?: string | null,"created_at"?: string,"created_by"?: string | null,"emotion_id"?: number | null,"ends_on"?: string,"fts"?: never,"game_url"?: string | null,"id"?: string,"logo_url"?: string | null,"pitch"?: string,"platform"?: Database["public"]['Enums']["platform"],"progress"?: number,"published_at"?: string | null,"repo_url"?: string | null,"site_url"?: string | null,"slug"?: string,"starts_on"?: string,"status"?: Database["public"]['Enums']["project_status"],"story"?: string,"title"?: string,"updated_at"?: string,"video_url"?: string | null
                   }
                   Relationships: [
                     {
@@ -436,10 +464,22 @@ isOneToOne: false
       referencedRelation: "categories"
       referencedColumns: ["id"]
     },{
+      foreignKeyName: "projects_character_id_fkey"
+      columns: ["character_id"]
+isOneToOne: false
+      referencedRelation: "characters"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "projects_created_by_fkey"
       columns: ["created_by"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "projects_emotion_id_fkey"
+      columns: ["emotion_id"]
+isOneToOne: false
+      referencedRelation: "emotions"
       referencedColumns: ["id"]
     }
                   ]
@@ -474,7 +514,7 @@ isOneToOne: false
           Views: {
             "project_cards": {
                   Row: {
-                    "backers_count": number | null,"category_id": number | null,"category_name": string | null,"category_slug": string | null,"comments_count": number | null,"cover_url": string | null,"created_at": string | null,"ends_on": string | null,"followers_count": number | null,"fts": unknown,"funded_amount": number | null,"id": string | null,"last_post_at": string | null,"logo_url": string | null,"members_count": number | null,"pitch": string | null,"platform": Database["public"]['Enums']["platform"] | null,"posts_count": number | null,"progress": number | null,"published_at": string | null,"slug": string | null,"starts_on": string | null,"status": Database["public"]['Enums']["project_status"] | null,"title": string | null,"updated_at": string | null
+                    "backers_count": number | null,"category_id": number | null,"category_name": string | null,"category_slug": string | null,"character_id": number | null,"character_name": string | null,"character_slug": string | null,"comments_count": number | null,"cover_url": string | null,"created_at": string | null,"emotion_id": number | null,"emotion_name": string | null,"emotion_slug": string | null,"ends_on": string | null,"followers_count": number | null,"fts": unknown,"funded_amount": number | null,"id": string | null,"last_post_at": string | null,"logo_url": string | null,"members_count": number | null,"pitch": string | null,"platform": Database["public"]['Enums']["platform"] | null,"posts_count": number | null,"progress": number | null,"published_at": string | null,"slug": string | null,"starts_on": string | null,"status": Database["public"]['Enums']["project_status"] | null,"title": string | null,"updated_at": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -483,6 +523,18 @@ isOneToOne: false
       columns: ["category_id"]
 isOneToOne: false
       referencedRelation: "categories"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "projects_character_id_fkey"
+      columns: ["character_id"]
+isOneToOne: false
+      referencedRelation: "characters"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "projects_emotion_id_fkey"
+      columns: ["emotion_id"]
+isOneToOne: false
+      referencedRelation: "emotions"
       referencedColumns: ["id"]
     }
                   ]
@@ -560,6 +612,9 @@ isOneToOne: false
                            },
 "school_year_of":
 { Args: { "p_date": string }; Returns: string
+                           },
+"set_project_constraints":
+{ Args: { "p_category": number,"p_character": number,"p_emotion": number,"p_project": string }; Returns: undefined
                            },
 "title_conflicts":
 { Args: { "p_exclude"?: string,"p_title": string }; Returns: {

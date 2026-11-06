@@ -13,7 +13,9 @@ export default async function AdminProjects() {
   const supabase = await createClient();
   const { data: projects } = await supabase
     .from("project_cards")
-    .select("id, slug, title, status, platform, progress, members_count, posts_count, comments_count, last_post_at, updated_at")
+    .select(
+      "id, slug, title, status, platform, progress, members_count, posts_count, comments_count, last_post_at, updated_at, category_name, character_name, emotion_name",
+    )
     .order("updated_at", { ascending: false });
 
   return (
@@ -39,6 +41,15 @@ export default async function AdminProjects() {
                 <p className="text-xs text-muted">
                   {p.platform && PLATFORM_LABEL[p.platform]} · {p.members_count} membres
                 </p>
+                {p.category_name && p.character_name && p.emotion_name ? (
+                  <p className="mt-1 text-xs">
+                    {p.category_name} · {p.character_name} · {p.emotion_name}
+                  </p>
+                ) : (
+                  <Badge tone="warning" className="mt-1">
+                    Contraintes à définir
+                  </Badge>
+                )}
               </td>
               <td className="px-3 py-3 sm:px-4">
                 {p.status && (

@@ -7,12 +7,13 @@ import { Badge } from "@/components/ui/misc";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABEL } from "@/lib/types";
-import { addCategory, addDomain, removeCategory, removeDomain, updateFundingSettings, updateSettings } from "../actions";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
+import { addDomain, addListItem, removeDomain, removeListItem, updateFundingSettings, updateSettings, type ConstraintList } from "../actions";
 
 export default async function AdminSettings() {
   await requireAdmin();
   const supabase = await createClient();
-  const [{ data: settings }, { data: adminEmails }, { data: domains }, { data: categories }] = await Promise.all([
+  const [{ data: settings }, { data: adminEmails }, { data: domains }, { data: categories }, { data: characters }, { data: emotions }] = await Promise.all([
     supabase
       .from("app_settings")
       .select("school_year, default_starts_on, default_ends_on, teacher_annual_budget, funding_goal, max_projects_per_student, funding_comments_enabled")
@@ -21,6 +22,8 @@ export default async function AdminSettings() {
     supabase.rpc("admin_bootstrap_emails"),
     supabase.from("allowed_email_domains").select("*").order("domain"),
     supabase.from("categories").select("*").order("position"),
+    supabase.from("characters").select("*").order("position"),
+    supabase.from("emotions").select("*").order("position"),
   ]);
 
   return (
@@ -115,25 +118,65 @@ export default async function AdminSettings() {
         </ActionForm>
       </EditorSection>
 
-      <EditorSection title="Genres de jeu">
-        <ul className="mb-6 flex flex-wrap gap-2">
-          {(categories ?? []).map((c) => (
-            <li key={c.id} className="inline-flex items-center gap-1 rounded-full border border-border py-1 pr-1 pl-3 text-sm">
-              {c.name}
-              <form action={removeCategory.bind(null, c.id)}>
-                <button type="submit" aria-label={`Retirer le genre ${c.name}`} className="rounded-full p-1 text-muted hover:bg-danger-soft hover:text-danger">
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
-        <ActionForm action={addCategory} submitLabel="Ajouter le genre" resetOnSuccess>
-          <Field label="Nom du genre" htmlFor="name">
-            <Input id="name" name="name" maxLength={40} placeholder="Ex. Coin pusher" />
-          </Field>
-        </ActionForm>
+      <EditorSection
+        title="Contraintes de la SAÉ"
+        description="Les listes proposées aux enseignant·es pour fixer le type de jeu, le personnage et l'émotion de chaque groupe."
+      >
+        <div className="space-y-8">
+          <ConstraintListEditor list="categories" title="Types de jeu" items={categories ?? []} placeholder="Ex. Coin pusher" />
+          <ConstraintListEditor list="characters" title="Personnages imposés" items={characters ?? []} placeholder="Ex. Une plume" />
+          <ConstraintListEditor list="emotions" title="Émotions à faire ressentir" items={emotions ?? []} placeholder="Ex. Nostalgie" />
+        </div>
       </EditorSection>
     </div>
+  );
+}
+
+const LIST_WORDING: Record<ConstraintList, { one: string; add: string }> = {
+  categories: { one: "le type de jeu", add: "Ajouter le type de jeu" },
+  characters: { one: "le personnage", add: "Ajouter le personnage" },
+  emotions: { one: "l'émotion", add: "Ajouter l'émotion" },
+};
+
+function ConstraintListEditor({
+  list,
+  title,
+  items,
+  placeholder,
+}: {
+  list: ConstraintList;
+  title: string;
+  items: { id: number; name: string }[];
+  placeholder: string;
+}) {
+  const wording = LIST_WORDING[list];
+  return (
+    <section aria-labelledby={`list-${list}`}>
+      <h3 id={`list-${list}`} className="text-sm font-semibold">
+        {title} <span className="font-normal text-muted">· {items.length}</span>
+      </h3>
+      <ul className="mt-3 mb-4 flex flex-wrap gap-2">
+        {items.map((item) => (
+          <li key={item.id} className="inline-flex items-center gap-1 rounded-full border border-border py-1 pr-1 pl-3 text-sm">
+            {item.name}
+            <ConfirmDelete
+              action={removeListItem.bind(null, list, item.id)}
+              title={`Retirer « ${item.name} » ?`}
+              description={`Les projets qui ont ${wording.one} « ${item.name} » repasseront à « à définir ».`}
+              confirmLabel="Retirer"
+              triggerLabel={`Retirer ${item.name}`}
+              triggerClassName="rounded-full p-1 text-muted hover:bg-danger-soft hover:text-danger"
+            >
+              <X className="h-3.5 w-3.5" />
+            </ConfirmDelete>
+          </li>
+        ))}
+      </ul>
+      <ActionForm action={addListItem.bind(null, list)} submitLabel={wording.add} resetOnSuccess className="flex flex-wrap items-end gap-3 space-y-0">
+        <Field label="Nouveau nom" htmlFor={`new-${list}`} className="min-w-56 flex-1">
+          <Input id={`new-${list}`} name="name" maxLength={60} placeholder={placeholder} />
+        </Field>
+      </ActionForm>
+    </section>
   );
 }

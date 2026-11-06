@@ -6,19 +6,19 @@ import { Input } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/misc";
 import { getFundingSettings } from "@/lib/data/funding";
-import { listCategories, listProjects, type SortKey, type StateFilter } from "@/lib/data/projects";
+import { listCategories, listCharacters, listEmotions, listProjects, type SortKey, type StateFilter } from "@/lib/data/projects";
 import { PLATFORM_LABEL, type Platform } from "@/lib/types";
 import { pluralize } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Découvrir les projets" };
 
 const SORTS: Record<SortKey, string> = {
-  recent: "Les plus récents",
-  active: "Mis à jour récemment",
-  progress: "Les plus avancés",
-  popular: "Les plus suivis",
+  recent: "Plus récents",
+  active: "Mis à jour",
+  progress: "Plus avancés",
+  popular: "Plus suivis",
 };
-const STATES: Record<StateFilter, string> = { all: "Tous", in_progress: "En cours", finished: "Terminés" };
+const STATES: Record<StateFilter, string> = { all: "État", in_progress: "En cours", finished: "Terminés" };
 
 function pick<T extends string>(value: unknown, allowed: readonly T[]): T | undefined {
   return typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : undefined;
@@ -26,16 +26,18 @@ function pick<T extends string>(value: unknown, allowed: readonly T[]): T | unde
 
 export default async function DiscoverPage({ searchParams }: PageProps<"/discover">) {
   const params = await searchParams;
-  const categories = await listCategories();
+  const [categories, characters, emotions] = await Promise.all([listCategories(), listCharacters(), listEmotions()]);
 
   const q = typeof params.q === "string" ? params.q.slice(0, 100) : "";
   const category = pick(params.category, categories.map((c) => c.slug));
+  const character = pick(params.character, characters.map((c) => c.slug));
+  const emotion = pick(params.emotion, emotions.map((e) => e.slug));
   const platform = pick(params.platform, Object.keys(PLATFORM_LABEL) as Platform[]);
   const state = pick(params.state, Object.keys(STATES) as StateFilter[]) ?? "all";
   const sort = pick(params.sort, Object.keys(SORTS) as SortKey[]) ?? "recent";
 
-  const [projects, { goal }] = await Promise.all([listProjects({ q, category, platform, state, sort }), getFundingSettings()]);
-  const hasFilters = Boolean(q || category || platform || state !== "all");
+  const [projects, { goal }] = await Promise.all([listProjects({ q, category, character, emotion, platform, state, sort }), getFundingSettings()]);
+  const hasFilters = Boolean(q || category || character || emotion || platform || state !== "all");
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -44,19 +46,37 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
         {pluralize(projects.length, "projet")} {hasFilters ? "correspondant à ta recherche" : "publiés par la promo"}.
       </p>
 
-      <form className="mt-8 grid gap-3 rounded-2xl border border-border bg-surface p-4 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]" role="search">
+      <form className="mt-8 grid grid-cols-2 gap-3 rounded-2xl border border-border bg-surface p-4 lg:grid-cols-5" role="search">
         <label className="sr-only" htmlFor="q">
           Recherche
         </label>
-        <Input id="q" name="q" type="search" defaultValue={q} placeholder="Nom du jeu, mot-clé…" />
+        <Input id="q" name="q" type="search" defaultValue={q} placeholder="Nom du jeu, mot-clé…" className="col-span-2 lg:col-span-3" />
         <label className="sr-only" htmlFor="category">
-          Genre
+          Type de jeu
         </label>
         <Select
           id="category"
           name="category"
           defaultValue={category ?? ""}
-          options={[{ value: "", label: "Tous les genres" }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]}
+          options={[{ value: "", label: "Type de jeu" }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]}
+        />
+        <label className="sr-only" htmlFor="character">
+          Personnage
+        </label>
+        <Select
+          id="character"
+          name="character"
+          defaultValue={character ?? ""}
+          options={[{ value: "", label: "Personnage" }, ...characters.map((c) => ({ value: c.slug, label: c.name }))]}
+        />
+        <label className="sr-only" htmlFor="emotion">
+          Émotion
+        </label>
+        <Select
+          id="emotion"
+          name="emotion"
+          defaultValue={emotion ?? ""}
+          options={[{ value: "", label: "Émotion" }, ...emotions.map((e) => ({ value: e.slug, label: e.name }))]}
         />
         <label className="sr-only" htmlFor="platform">
           Plateforme
@@ -66,7 +86,7 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
           name="platform"
           defaultValue={platform ?? ""}
           options={[
-            { value: "", label: "Toutes les plateformes" },
+            { value: "", label: "Plateforme" },
             ...Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label })),
           ]}
         />
@@ -88,7 +108,7 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
           defaultValue={sort}
           options={Object.entries(SORTS).map(([value, label]) => ({ value, label }))}
         />
-        <Button type="submit" variant="secondary" className="h-11">
+        <Button type="submit" variant="secondary" className="col-span-2 h-11 lg:col-span-1">
           Filtrer
         </Button>
       </form>
