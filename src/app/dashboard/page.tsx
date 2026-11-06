@@ -85,7 +85,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
         <div className="space-y-10">
           {invitations && invitations.length > 0 && (
-            <section>
+            <section id="invitations" className="scroll-mt-24">
               <h2 className="mb-4 font-display text-2xl font-extrabold">Invitations</h2>
               <ul className="space-y-3">
                 {invitations.map((inv) => (

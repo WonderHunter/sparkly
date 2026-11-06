@@ -108,7 +108,7 @@ export async function NotificationBell() {
             </ul>
           )}
           <p className="border-t border-border bg-surface-muted px-4 py-2.5 text-center text-xs text-muted">
-            Commentaires sur tes projets et réponses à tes commentaires
+            Commentaires, réponses et invitations dans une équipe
           </p>
         </div>
       </div>

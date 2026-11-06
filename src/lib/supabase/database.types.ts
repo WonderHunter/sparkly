@@ -261,14 +261,14 @@ isOneToOne: false
                   ]
                 },"notifications": {
                   Row: {
-                    "actor_id": string | null,"comment_id": string,"created_at": string,"id": string,"kind": string,"project_id": string,"read_at": string | null,"user_id": string
+                    "actor_id": string | null,"comment_id": string | null,"created_at": string,"id": string,"invitation_id": string | null,"kind": string,"project_id": string,"project_title": string | null,"read_at": string | null,"team_title": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "actor_id"?: string | null,"comment_id": string,"created_at"?: string,"id"?: string,"kind": string,"project_id": string,"read_at"?: string | null,"user_id": string
+                    "actor_id"?: string | null,"comment_id"?: string | null,"created_at"?: string,"id"?: string,"invitation_id"?: string | null,"kind": string,"project_id": string,"project_title"?: string | null,"read_at"?: string | null,"team_title"?: string | null,"user_id": string
                   }
                   Update: {
-                    "actor_id"?: string | null,"comment_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"project_id"?: string,"read_at"?: string | null,"user_id"?: string
+                    "actor_id"?: string | null,"comment_id"?: string | null,"created_at"?: string,"id"?: string,"invitation_id"?: string | null,"kind"?: string,"project_id"?: string,"project_title"?: string | null,"read_at"?: string | null,"team_title"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -282,6 +282,12 @@ isOneToOne: false
       columns: ["comment_id"]
 isOneToOne: false
       referencedRelation: "comments"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_invitation_id_fkey"
+      columns: ["invitation_id"]
+isOneToOne: false
+      referencedRelation: "project_invitations"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "notifications_project_id_fkey"
