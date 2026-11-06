@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { notificationHref, notificationVerb, unreadBadge } from "./notifications";
+import { invitationHref, notificationHref, notificationVerb, unreadBadge } from "./notifications";
 
 describe("notificationHref", () => {
   it("mène au commentaire dans l'onglet Commentaires", () => {
@@ -15,6 +15,15 @@ describe("notificationVerb", () => {
   it("distingue un commentaire d'une réponse", () => {
     expect(notificationVerb("comment")).toBe("a commenté");
     expect(notificationVerb("reply")).toBe("a répondu à ton commentaire sur");
+    expect(notificationVerb("invitation")).toBe("t'invite à rejoindre");
+  });
+});
+
+describe("invitationHref", () => {
+  it("mène à l'invitation tant qu'elle attend, puis au projet", () => {
+    expect(invitationHref({ pending: true, slug: "orbit-smash" })).toBe("/dashboard#invitations");
+    expect(invitationHref({ pending: false, slug: "orbit-smash" })).toBe("/p/orbit-smash");
+    expect(invitationHref({ pending: false, slug: null })).toBe("/dashboard");
   });
 });
 

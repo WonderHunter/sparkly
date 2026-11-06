@@ -8,7 +8,7 @@ export interface NotificationItem {
   kind: NotificationKind;
   readAt: string | null;
   createdAt: string;
-  commentId: string;
+  commentId: string | null;
   excerpt: string | null;
   postNumber: number | null;
   project: { slug: string; title: string } | null;
@@ -22,7 +22,7 @@ export const getNotifications = cache(async (limit = 8): Promise<{ items: Notifi
     supabase
       .from("notifications")
       .select(
-        "id, kind, read_at, created_at, comment_id, comment:comments(body, post:posts(number)), project:projects(slug, title), actor:profiles!notifications_actor_id_fkey(display_name, avatar_url)",
+        "id, kind, read_at, created_at, comment_id, team_title, project_title, comment:comments(body, post:posts(number)), project:projects(slug, title), actor:profiles!notifications_actor_id_fkey(display_name, avatar_url)",
       )
       .order("created_at", { ascending: false })
       .limit(limit),
@@ -35,9 +35,10 @@ export const getNotifications = cache(async (limit = 8): Promise<{ items: Notifi
     readAt: n.read_at,
     createdAt: n.created_at,
     commentId: n.comment_id,
-    excerpt: n.comment?.body ?? null,
+    excerpt: n.kind === "invitation" ? (n.team_title ? `Rôle proposé : ${n.team_title}` : null) : (n.comment?.body ?? null),
     postNumber: n.comment?.post?.number ?? null,
-    project: n.project,
+    // Projet en brouillon invisible pour une personne seulement invitée : on garde le titre copié.
+    project: n.project ?? (n.project_title ? { slug: "", title: n.project_title } : null),
     actor: n.actor ? { displayName: n.actor.display_name, avatarUrl: n.actor.avatar_url } : null,
   }));
   return { items, unread: unread.count ?? 0 };
