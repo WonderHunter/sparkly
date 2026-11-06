@@ -7,7 +7,6 @@ const validBasics = {
   slug: "neon-pusher",
   pitch: "Un coin pusher néon.",
   platform: "borne",
-  categoryId: "2",
   startsOn: "2026-09-01",
   endsOn: "2027-01-31",
   videoUrl: "https://youtu.be/216_5nu4aVQ",
@@ -21,7 +20,6 @@ const validBasics = {
 describe("basicsSchema", () => {
   it("accepte un formulaire valide et normalise les champs vides", () => {
     const parsed = basicsSchema.parse(validBasics);
-    expect(parsed.categoryId).toBe(2);
     expect(parsed.gameUrl).toBeNull();
     expect(parsed.repoUrl).toBe("https://github.com/mmi/neon");
   });

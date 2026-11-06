@@ -10,6 +10,8 @@ export type StateFilter = "all" | "in_progress" | "finished";
 export interface ProjectFilters {
   q?: string;
   category?: string;
+  character?: string;
+  emotion?: string;
   platform?: Platform;
   state?: StateFilter;
   sort?: SortKey;
@@ -27,6 +29,8 @@ export async function listProjects(filters: ProjectFilters = {}): Promise<Projec
     query = query.textSearch("fts", filters.q.trim(), { type: "websearch", config: "french" });
   }
   if (filters.category) query = query.eq("category_slug", filters.category);
+  if (filters.character) query = query.eq("character_slug", filters.character);
+  if (filters.emotion) query = query.eq("emotion_slug", filters.emotion);
   if (filters.platform) query = query.eq("platform", filters.platform);
   if (filters.state === "finished") query = query.gte("progress", 100);
   if (filters.state === "in_progress") query = query.lt("progress", 100);
@@ -50,14 +54,33 @@ export async function listProjects(filters: ProjectFilters = {}): Promise<Projec
   return data ?? [];
 }
 
+/** Types de jeu (table categories : l'ancien « genre »). */
 export const listCategories = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.from("categories").select("*").order("position");
   return data ?? [];
 });
 
+/** Personnages imposés par la SAÉ. */
+export const listCharacters = cache(async () => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("characters").select("*").order("position");
+  return data ?? [];
+});
+
+/** Émotions à faire ressentir, imposées par la SAÉ. */
+export const listEmotions = cache(async () => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("emotions").select("*").order("position");
+  return data ?? [];
+});
+
 export interface ProjectPage {
-  project: Project & { category: { slug: string; name: string } | null };
+  project: Project & {
+    category: { slug: string; name: string } | null;
+    character: { slug: string; name: string } | null;
+    emotion: { slug: string; name: string } | null;
+  };
   members: Member[];
   milestones: Milestone[];
   stats: { followers: number; comments: number; posts: number };
@@ -68,7 +91,7 @@ export const getProjectPage = cache(async (slug: string): Promise<ProjectPage | 
   const supabase = await createClient();
   const { data: project } = await supabase
     .from("projects")
-    .select("*, category:categories(slug, name)")
+    .select("*, category:categories(slug, name), character:characters(slug, name), emotion:emotions(slug, name)")
     .ilike("slug", slug)
     .maybeSingle();
   if (!project) return null;

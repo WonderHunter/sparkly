@@ -33,10 +33,6 @@ export const basicsSchema = z
     slug: slugSchema,
     pitch: z.string().trim().max(200, "200 caractères maximum."),
     platform: z.enum(PLATFORMS, { error: "Choisis une plateforme." }),
-    categoryId: z
-      .string()
-      .transform((v) => (v === "" ? null : Number(v)))
-      .refine((v) => v === null || (Number.isInteger(v) && v > 0), "Catégorie invalide."),
     startsOn: isoDate,
     endsOn: isoDate,
     videoUrl: optionalUrl.refine((v) => v === null || parseVideoUrl(v) !== null, "Seules les vidéos YouTube ou Vimeo sont acceptées."),

@@ -80,7 +80,7 @@ export default async function HomePage() {
 
       {categories.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="font-display text-2xl font-extrabold">Explorer par genre</h2>
+          <h2 className="font-display text-2xl font-extrabold">Explorer par type de jeu</h2>
           <div className="mt-5 flex flex-wrap gap-2">
             {categories.map((c) => (
               <Link

@@ -119,6 +119,46 @@ export async function report(_prev: ActionState, formData: FormData): Promise<Ac
 }
 
 // ---------------------------------------------------------------------------
+// Contraintes de la SAÉ (type de jeu, personnage, émotion), fixées par l'équipe pédagogique
+// ---------------------------------------------------------------------------
+const constraintId = z
+  .string()
+  .transform((v) => (v === "" ? null : Number(v)))
+  .refine((v) => v === null || (Number.isInteger(v) && v > 0), "Choix invalide.");
+
+export async function setProjectConstraints(
+  slug: string,
+  projectId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const viewer = await getViewer();
+  if (!viewer?.isStaff || viewer.isSuspended) return { error: "Réservé à l'équipe pédagogique." };
+  if (!uuid.safeParse(projectId).success) return { error: "Projet invalide." };
+  const parsed = z
+    .object({ categoryId: constraintId, characterId: constraintId, emotionId: constraintId })
+    .safeParse({
+      categoryId: String(formData.get("categoryId") ?? ""),
+      characterId: String(formData.get("characterId") ?? ""),
+      emotionId: String(formData.get("emotionId") ?? ""),
+    });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_project_constraints", {
+    p_project: projectId,
+    p_category: parsed.data.categoryId as number,
+    p_character: parsed.data.characterId as number,
+    p_emotion: parsed.data.emotionId as number,
+  });
+  if (error) return { error: "Les contraintes n'ont pas pu être enregistrées." };
+  revalidatePath(`/p/${slug}`, "layout");
+  revalidatePath("/discover");
+  revalidatePath("/admin/projects");
+  return { ok: true, message: "Contraintes enregistrées." };
+}
+
+// ---------------------------------------------------------------------------
 // Financement fictif par les enseignant·es
 // ---------------------------------------------------------------------------
 const FUNDING_ERRORS = new Set(["SP002", "SP003"]);

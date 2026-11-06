@@ -47,22 +47,24 @@ update public.profiles set display_name = 'Emma Roux', promo = 'MMI3 2026-2027' 
 update public.profiles set display_name = 'Farid Benali', promo = 'MMI3 2026-2027' where id = '00000000-0000-4000-a000-000000000007';
 
 -- Projets (le trigger ajoute le créateur comme owner et crée les 6 jalons).
-insert into public.projects (id, slug, title, pitch, story, category_id, platform, status, created_by, game_url, video_url)
+insert into public.projects (id, slug, title, pitch, story, category_id, character_id, emotion_id, platform, status, created_by, game_url, video_url)
 values
   ('10000000-0000-4000-a000-000000000001', 'neon-pusher', 'Neon Pusher',
    'Un coin pusher néon où chaque pièce déclenche une avalanche de lumière.',
    '<p>Neon Pusher revisite le <strong>coin pusher</strong> des fêtes foraines avec une physique exagérée et beaucoup de <em>juice</em> : chaque pièce fait vibrer l''écran, chaque chute déclenche une pluie de particules.</p><h2>Gameplay</h2><ul><li>Une partie dure 3 minutes.</li><li>La difficulté augmente avec le score.</li><li>Jouable à deux sur la borne.</li></ul>',
-   (select id from public.categories where slug = 'arcade'), 'borne', 'published',
+   (select id from public.categories where slug = 'casino'), (select id from public.characters where slug = 'aimant'),
+   (select id from public.emotions where slug = 'defoulement'), 'borne', 'published',
    '00000000-0000-4000-a000-000000000002', 'https://example.com/neon-pusher', 'https://www.youtube.com/watch?v=216_5nu4aVQ'),
   ('10000000-0000-4000-a000-000000000002', 'table-tempete', 'Table Tempête',
    'Quatre joueurs, une table cocktail, une tempête à dompter ensemble.',
    '<p>Un jeu coopératif en vue de dessus pour la table cocktail : chaque joueur contrôle un côté du bateau.</p>',
-   (select id from public.categories where slug = 'party'), 'cocktail', 'published',
+   (select id from public.categories where slug = 'cooperatif'), (select id from public.characters where slug = 'goutte-d-eau'),
+   (select id from public.emotions where slug = 'panique'), 'cocktail', 'published',
    '00000000-0000-4000-a000-000000000005', null, null),
   ('10000000-0000-4000-a000-000000000003', 'rythme-hall', 'Rythme du Hall',
    'Un jeu de rythme projeté sur la télé du hall, contrôlé avec ton téléphone.',
    '<p>Projet encore en brouillon.</p>',
-   (select id from public.categories where slug = 'rythme'), 'tv', 'draft',
+   (select id from public.categories where slug = 'rythme'), null, null, 'tv', 'draft',
    '00000000-0000-4000-a000-000000000007', null, null);
 
 insert into public.project_members (project_id, user_id, role, team_title, position) values
