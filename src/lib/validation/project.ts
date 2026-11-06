@@ -2,8 +2,6 @@ import { z } from "zod";
 import { slugify } from "@/lib/domain/slug";
 import { parseVideoUrl } from "@/lib/domain/video";
 
-const PLATFORMS = ["borne", "cocktail", "tv", "web"] as const;
-
 const optionalUrl = z
   .string()
   .trim()
@@ -24,7 +22,6 @@ export const slugSchema = z
 
 export const createProjectSchema = z.object({
   title: z.string().trim().min(2, "Le nom du jeu doit faire au moins 2 caractères.").max(80, "80 caractères maximum."),
-  platform: z.enum(PLATFORMS, { error: "Choisis une plateforme." }),
 });
 
 export const basicsSchema = z
@@ -32,7 +29,6 @@ export const basicsSchema = z
     title: z.string().trim().min(2, "Le nom du jeu doit faire au moins 2 caractères.").max(80, "80 caractères maximum."),
     slug: slugSchema,
     pitch: z.string().trim().max(200, "200 caractères maximum."),
-    platform: z.enum(PLATFORMS, { error: "Choisis une plateforme." }),
     startsOn: isoDate,
     endsOn: isoDate,
     videoUrl: optionalUrl.refine((v) => v === null || parseVideoUrl(v) !== null, "Seules les vidéos YouTube ou Vimeo sont acceptées."),

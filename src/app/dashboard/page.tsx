@@ -4,7 +4,6 @@ import { Eye, HandCoins, Megaphone, Pencil, Plus, Shield } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, FormMessage, Input } from "@/components/ui/form";
-import { Select } from "@/components/ui/select";
 import { Badge, Card, EmptyState, ProgressBar, SparkMark } from "@/components/ui/misc";
 import { requireViewer } from "@/lib/auth";
 import { getTeacherBudget, type TeacherBudget } from "@/lib/data/funding";
@@ -178,7 +177,7 @@ function MyProjectCard({ data }: { data: MyProject }) {
           <Badge tone={project.status === "published" ? "success" : project.status === "hidden" ? "danger" : "warning"}>
             {STATUS_LABEL[project.status]}
           </Badge>
-          <Badge>{PLATFORM_LABEL[project.platform]}</Badge>
+          {project.platform && <Badge>{PLATFORM_LABEL[project.platform]}</Badge>}
           <Badge tone="spark">{team_title || MEMBER_ROLE_LABEL[role]}</Badge>
         </div>
         <h3 className="mt-3 font-display text-2xl font-extrabold">{project.title}</h3>
@@ -242,21 +241,14 @@ function CreateProjectCard({ disabled }: { disabled: boolean }) {
         l&apos;ajuster ensuite. Tu peux faire partie de plusieurs projets.
       </p>
       <ActionForm action={createProject} submitLabel="Créer le projet" pendingLabel="Création…">
-        <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-          <Field label="Nom du jeu (provisoire, c'est ok)" htmlFor="title">
-            <Input id="title" name="title" maxLength={80} required placeholder="Ex. Neon Pusher" />
-            <FieldError name="title" />
-          </Field>
-          <Field label="Plateforme" htmlFor="platform">
-            <Select
-              id="platform"
-              name="platform"
-              defaultValue="borne"
-              options={Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label }))}
-            />
-            <FieldError name="platform" />
-          </Field>
-        </div>
+        <Field
+          label="Nom du jeu (provisoire, c'est ok)"
+          htmlFor="title"
+          hint="La plateforme, le type de jeu, le personnage et l'émotion seront fixés par l'équipe pédagogique."
+        >
+          <Input id="title" name="title" maxLength={80} required placeholder="Ex. Neon Pusher" />
+          <FieldError name="title" />
+        </Field>
       </ActionForm>
     </Card>
   );

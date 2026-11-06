@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getViewer } from "@/lib/auth";
 import { getFundingSettings } from "@/lib/data/funding";
 import { parseEuros } from "@/lib/domain/funding";
+import { PLATFORM_OPTIONS, type Platform } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionState = { ok?: boolean; error?: string; message?: string };
@@ -119,7 +120,7 @@ export async function report(_prev: ActionState, formData: FormData): Promise<Ac
 }
 
 // ---------------------------------------------------------------------------
-// Contraintes de la SAÉ (type de jeu, personnage, émotion), fixées par l'équipe pédagogique
+// Contraintes de la SAÉ (plateforme, type de jeu, personnage, émotion), fixées par l'équipe pédagogique
 // ---------------------------------------------------------------------------
 const constraintId = z
   .string()
@@ -136,8 +137,14 @@ export async function setProjectConstraints(
   if (!viewer?.isStaff || viewer.isSuspended) return { error: "Réservé à l'équipe pédagogique." };
   if (!uuid.safeParse(projectId).success) return { error: "Projet invalide." };
   const parsed = z
-    .object({ categoryId: constraintId, characterId: constraintId, emotionId: constraintId })
+    .object({
+      platform: z.enum(["", ...PLATFORM_OPTIONS], { error: "Plateforme invalide." }),
+      categoryId: constraintId,
+      characterId: constraintId,
+      emotionId: constraintId,
+    })
     .safeParse({
+      platform: String(formData.get("platform") ?? ""),
       categoryId: String(formData.get("categoryId") ?? ""),
       characterId: String(formData.get("characterId") ?? ""),
       emotionId: String(formData.get("emotionId") ?? ""),
@@ -147,6 +154,7 @@ export async function setProjectConstraints(
   const supabase = await createClient();
   const { error } = await supabase.rpc("set_project_constraints", {
     p_project: projectId,
+    p_platform: (parsed.data.platform || null) as Platform,
     p_category: parsed.data.categoryId as number,
     p_character: parsed.data.characterId as number,
     p_emotion: parsed.data.emotionId as number,

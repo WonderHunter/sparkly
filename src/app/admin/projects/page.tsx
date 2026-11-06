@@ -38,12 +38,10 @@ export default async function AdminProjects() {
                 <Link href={`/p/${p.slug}`} className="font-semibold hover:text-spark-strong">
                   {p.title}
                 </Link>
-                <p className="text-xs text-muted">
-                  {p.platform && PLATFORM_LABEL[p.platform]} · {p.members_count} membres
-                </p>
-                {p.category_name && p.character_name && p.emotion_name ? (
+                <p className="text-xs text-muted">{p.members_count} membres</p>
+                {p.platform && p.category_name && p.character_name && p.emotion_name ? (
                   <p className="mt-1 text-xs">
-                    {p.category_name} · {p.character_name} · {p.emotion_name}
+                    {PLATFORM_LABEL[p.platform]} · {p.category_name} · {p.character_name} · {p.emotion_name}
                   </p>
                 ) : (
                   <Badge tone="warning" className="mt-1">
