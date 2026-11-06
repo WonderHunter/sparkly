@@ -592,6 +592,9 @@ isOneToOne: false
 "is_allowed_email":
 { Args: { "p_email": string }; Returns: boolean
                            },
+"is_invited":
+{ Args: { "p_project": string }; Returns: boolean
+                           },
 "is_member":
 { Args: { "p_project": string }; Returns: boolean
                            },
