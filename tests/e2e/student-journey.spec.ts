@@ -17,9 +17,8 @@ test.describe("Parcours étudiant", () => {
     await login(page, ownerEmail, "/dashboard");
     await expect(page.getByRole("heading", { name: "Mon projet" })).toBeVisible();
     await page.getByLabel(/Nom du jeu/).fill(title);
-    await page.getByRole("combobox", { name: "Plateforme" }).click();
-    await page.getByRole("option", { name: "Télé du hall" }).click();
-    await expect(page.getByRole("combobox", { name: "Plateforme" })).toHaveText(/Télé du hall/);
+    // La plateforme est fixée par l'équipe pédagogique, pas par le groupe.
+    await expect(page.getByRole("combobox", { name: "Plateforme" })).toHaveCount(0);
     await page.getByRole("button", { name: "Créer le projet" }).click();
     await page.waitForURL(/\/edit\/basics$/);
 

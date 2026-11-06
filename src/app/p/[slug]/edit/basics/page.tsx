@@ -4,7 +4,6 @@ import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 import { SlugField } from "@/components/editor/slug-field";
 import { Field, FormMessage, Input, Textarea } from "@/components/ui/form";
-import { Select } from "@/components/ui/select";
 import { findTitleConflicts, listCategories, listCharacters, listEmotions } from "@/lib/data/projects";
 import { getSiteUrl } from "@/lib/site-url";
 import { getEditContext } from "@/lib/data/editor";
@@ -69,21 +68,13 @@ export default async function BasicsTab({ params, searchParams }: PageProps<"/p/
           <FieldError name="pitch" />
         </Field>
 
-        <Field label="Plateforme" htmlFor="platform">
-          <Select
-            id="platform"
-            name="platform"
-            defaultValue={project.platform}
-            options={Object.entries(PLATFORM_LABEL).map(([value, label]) => ({ value, label }))}
-          />
-        </Field>
-
         <div role="group" aria-labelledby="constraints-label" className="rounded-xl border border-border bg-surface-muted/60 p-4">
           <p id="constraints-label" className="text-sm font-semibold">
             Contraintes de la SAÉ
           </p>
           <p className="mb-3 text-xs text-muted">Fixées par l&apos;équipe pédagogique : demande à un·e enseignant·e pour les changer.</p>
           <ConstraintBadges
+            platform={project.platform ? PLATFORM_LABEL[project.platform] : null}
             category={categories.find((c) => c.id === project.category_id)}
             character={characters.find((c) => c.id === project.character_id)}
             emotion={emotions.find((e) => e.id === project.emotion_id)}

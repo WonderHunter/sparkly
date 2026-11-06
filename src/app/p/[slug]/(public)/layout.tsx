@@ -9,7 +9,7 @@ import { ProgressPanel } from "@/components/project/progress-panel";
 import { ProjectTabs } from "@/components/project/project-tabs";
 import { SiteCard } from "@/components/project/site-card";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { Badge, SparkMark } from "@/components/ui/misc";
+import { SparkMark } from "@/components/ui/misc";
 import { getViewer } from "@/lib/auth";
 import { getFundingSettings, getTeacherBudget, listInvestments } from "@/lib/data/funding";
 import { findRenamedSlug, getProjectPage, isFollowing, listCategories, listCharacters, listEmotions } from "@/lib/data/projects";
@@ -83,14 +83,12 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
           )}
           <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">{project.title}</h1>
           {project.pitch && <p className="mt-3 text-lg text-muted sm:text-xl">{project.pitch}</p>}
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Badge>{PLATFORM_LABEL[project.platform]}</Badge>
-          </div>
           <ConstraintBadges
+            platform={project.platform ? PLATFORM_LABEL[project.platform] : null}
             category={project.category}
             character={project.character}
             emotion={project.emotion}
-            className="mt-3 justify-center"
+            className="mt-4 justify-center"
           />
         </div>
       </header>
@@ -187,7 +185,12 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
             <ConstraintsForm
               slug={project.slug}
               projectId={project.id}
-              current={{ category: project.category_id, character: project.character_id, emotion: project.emotion_id }}
+              current={{
+                platform: project.platform,
+                category: project.category_id,
+                character: project.character_id,
+                emotion: project.emotion_id,
+              }}
               {...constraintOptions}
             />
           )}

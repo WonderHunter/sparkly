@@ -17,7 +17,6 @@ export async function createProject(_prev: FormState, formData: FormData): Promi
 
   const parsed = createProjectSchema.safeParse({
     title: formData.get("title"),
-    platform: formData.get("platform"),
   });
   if (!parsed.success) return { error: "Vérifie le formulaire.", fields: fieldErrors(parsed.error) };
 
@@ -28,7 +27,6 @@ export async function createProject(_prev: FormState, formData: FormData): Promi
     const { error } = await supabase.from("projects").insert({
       slug,
       title: parsed.data.title,
-      platform: parsed.data.platform,
       created_by: viewer.id,
     });
     if (!error) break;

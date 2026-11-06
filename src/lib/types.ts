@@ -27,9 +27,12 @@ export interface Member {
 export const PLATFORM_LABEL: Record<Platform, string> = {
   borne: "Borne d'arcade",
   cocktail: "Table cocktail",
-  tv: "Télé du hall",
+  tv: "Écran + smartphone",
   web: "Web",
 };
+
+/** Plateformes proposées (fixées par l'équipe pédagogique). « web » n'existe plus que dans l'historique. */
+export const PLATFORM_OPTIONS: Platform[] = ["borne", "cocktail", "tv"];
 
 export const ROLE_LABEL: Record<UserRole, string> = {
   student: "Étudiant·e",

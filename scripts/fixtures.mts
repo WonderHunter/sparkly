@@ -72,7 +72,7 @@ interface ProjectSpec {
   title: string;
   pitch: string;
   story: string;
-  platform: "borne" | "cocktail" | "tv" | "web";
+  platform: "borne" | "cocktail" | "tv";
   category: string;
   character: string;
   emotion: string;
@@ -162,7 +162,7 @@ const PROJECTS: ProjectSpec[] = [
     ],
   },
   {
-    slug: "metro-rush", title: "Métro Rush", platform: "web", category: "course", character: "fumee", emotion: "peur", status: "published",
+    slug: "metro-rush", title: "Métro Rush", platform: "tv", category: "course", character: "fumee", emotion: "peur", status: "published",
     pitch: "Trace les lignes de métro plus vite que la foule n'arrive sur les quais.",
     story: P("Un jeu de réflexe et de planification", "Les stations apparaissent, les voyageurs s'impatientent. Relie tout avant la saturation.") +
       P("Sur le web", "Jouable directement dans le navigateur, avec un classement en ligne."),
