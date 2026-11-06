@@ -90,7 +90,7 @@ export async function NotificationBell() {
                       </span>
                       {n.excerpt && (
                         <span className="mt-0.5 block truncate text-sm text-muted">
-                          « {n.excerpt} »
+                          {n.kind === "invitation" ? n.excerpt : `« ${n.excerpt} »`}
                         </span>
                       )}
                       <span className="mt-0.5 block text-xs text-muted">
@@ -108,7 +108,7 @@ export async function NotificationBell() {
             </ul>
           )}
           <p className="border-t border-border bg-surface-muted px-4 py-2.5 text-center text-xs text-muted">
-            Commentaires sur tes projets et réponses à tes commentaires
+            Commentaires, réponses et invitations dans une équipe
           </p>
         </div>
       </div>

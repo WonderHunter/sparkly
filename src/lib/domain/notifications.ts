@@ -1,4 +1,4 @@
-export type NotificationKind = "comment" | "reply";
+export type NotificationKind = "comment" | "reply" | "invitation";
 
 /** Lien vers le commentaire concerné : sur le devlog s'il y est rattaché, sinon dans l'onglet Commentaires. */
 export function notificationHref(target: { slug: string; postNumber?: number | null; commentId: string }): string {
@@ -6,8 +6,18 @@ export function notificationHref(target: { slug: string; postNumber?: number | n
   return `${base}#comment-${target.commentId}`;
 }
 
+/**
+ * Lien d'une invitation : le tableau de bord pour l'accepter tant qu'elle est en attente,
+ * sinon la page du projet (rejoint entre-temps), sinon le tableau de bord.
+ */
+export function invitationHref(target: { pending: boolean; slug: string | null }): string {
+  if (target.pending) return "/dashboard#invitations";
+  return target.slug ? `/p/${target.slug}` : "/dashboard";
+}
+
 /** Phrase courte après le nom de l'auteur : « Léa a commenté » … « Orbit Smash ». */
 export function notificationVerb(kind: NotificationKind): string {
+  if (kind === "invitation") return "t'invite à rejoindre";
   return kind === "reply" ? "a répondu à ton commentaire sur" : "a commenté";
 }
 
