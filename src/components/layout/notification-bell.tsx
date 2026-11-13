@@ -1,4 +1,4 @@
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, Bot, CheckCheck } from "lucide-react";
 import { markAllNotificationsRead } from "@/app/notifications/actions";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { Avatar } from "@/components/ui/misc";
@@ -73,21 +73,33 @@ export async function NotificationBell() {
                       !n.readAt && "bg-spark-soft/40",
                     )}
                   >
-                    <Avatar
-                      name={n.actor?.displayName ?? "Compte supprimé"}
-                      src={n.actor?.avatarUrl}
-                      size="sm"
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm">
-                        <strong className="font-semibold">
-                          {n.actor?.displayName ?? "Quelqu'un"}
-                        </strong>{" "}
-                        {notificationVerb(n.kind)}{" "}
-                        <strong className="font-semibold">
-                          {n.project?.title}
-                        </strong>
+                    {n.kind === "agent_expiring" ? (
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning-soft text-warning">
+                        <Bot className="h-4 w-4" aria-hidden />
                       </span>
+                    ) : (
+                      <Avatar
+                        name={n.actor?.displayName ?? "Compte supprimé"}
+                        src={n.actor?.avatarUrl}
+                        size="sm"
+                      />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      {n.kind === "agent_expiring" ? (
+                        <span className="block text-sm">
+                          Ton accès <strong className="font-semibold">« {n.agentName} »</strong> expire dans moins de 7 jours
+                        </span>
+                      ) : (
+                        <span className="block text-sm">
+                          <strong className="font-semibold">
+                            {n.actor?.displayName ?? "Quelqu'un"}
+                          </strong>{" "}
+                          {notificationVerb(n.kind)}{" "}
+                          <strong className="font-semibold">
+                            {n.project?.title}
+                          </strong>
+                        </span>
+                      )}
                       {n.excerpt && (
                         <span className="mt-0.5 block truncate text-sm text-muted">
                           {n.kind === "invitation" ? n.excerpt : `« ${n.excerpt} »`}
@@ -108,7 +120,7 @@ export async function NotificationBell() {
             </ul>
           )}
           <p className="border-t border-border bg-surface-muted px-4 py-2.5 text-center text-xs text-muted">
-            Commentaires, réponses et invitations dans une équipe
+            Commentaires, réponses, invitations et accès des agents IA
           </p>
         </div>
       </div>

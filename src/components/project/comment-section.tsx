@@ -4,6 +4,7 @@ import { deleteComment, setCommentHidden } from "@/app/p/[slug]/actions";
 import { ButtonLink } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Avatar, Badge } from "@/components/ui/misc";
+import { ViaAgent } from "@/components/ui/via-agent";
 import type { Viewer } from "@/lib/auth";
 import type { CommentThread, CommentWithAuthor } from "@/lib/data/projects";
 import { formatEuros } from "@/lib/domain/funding";
@@ -107,6 +108,7 @@ function CommentItem({ comment, slug, viewer }: { comment: CommentWithAuthor; sl
           <time dateTime={comment.created_at} className="text-muted">
             {formatRelative(comment.created_at)}
           </time>
+          {comment.via_agent && <ViaAgent name={comment.via_agent} />}
           {hidden && (
             <Badge tone="danger">
               <EyeOff className="h-3 w-3" /> Masqué

@@ -22,5 +22,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
+  // Routes des agents IA exclues : pas de session navigateur, authentification par jeton.
+  matcher: ["/((?!_next/static|_next/image|api/mcp|oauth/(?:token|register|revoke)|\\.well-known|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
 };

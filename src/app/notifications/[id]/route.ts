@@ -21,6 +21,7 @@ export async function GET(request: NextRequest, { params }: RouteContext<"/notif
   if (!data) return NextResponse.redirect(home);
 
   await supabase.rpc("mark_notifications_read", { p_id: id });
+  if (data.kind === "agent_expiring") return NextResponse.redirect(new URL("/settings/agents", request.url));
   if (data.kind === "invitation") {
     const href = invitationHref({ pending: data.invitation_id !== null, slug: data.project?.slug ?? null });
     return NextResponse.redirect(new URL(href, request.url));

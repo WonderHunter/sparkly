@@ -1,4 +1,4 @@
-export type NotificationKind = "comment" | "reply" | "invitation";
+export type NotificationKind = "comment" | "reply" | "invitation" | "agent_expiring";
 
 /** Lien vers le commentaire concerné : sur le devlog s'il y est rattaché, sinon dans l'onglet Commentaires. */
 export function notificationHref(target: { slug: string; postNumber?: number | null; commentId: string }): string {
@@ -18,6 +18,7 @@ export function invitationHref(target: { pending: boolean; slug: string | null }
 /** Phrase courte après le nom de l'auteur : « Léa a commenté » … « Orbit Smash ». */
 export function notificationVerb(kind: NotificationKind): string {
   if (kind === "invitation") return "t'invite à rejoindre";
+  if (kind === "agent_expiring") return "expire bientôt :";
   return kind === "reply" ? "a répondu à ton commentaire sur" : "a commenté";
 }
 

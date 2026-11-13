@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Bot, ChevronRight } from "lucide-react";
 import { ActionForm, FieldError } from "@/components/editor/action-form";
 import { EditorSection } from "@/components/editor/editor-section";
 import { ImageField } from "@/components/editor/image-upload";
@@ -43,6 +44,20 @@ export default async function SettingsPage() {
           </Field>
         </ActionForm>
       </EditorSection>
+
+      <Link
+        href="/settings/agents"
+        className="mt-6 flex items-center gap-4 rounded-3xl border border-border bg-surface p-6 hover:border-foreground/30 sm:p-8"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-spark-soft text-spark-strong">
+          <Bot className="h-5 w-5" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-xl font-extrabold">Agents IA</span>
+          <span className="text-sm text-muted">Connecter Claude, ChatGPT ou un script à ton compte, gérer les accès et les clés.</span>
+        </span>
+        <ChevronRight className="h-5 w-5 text-muted" aria-hidden />
+      </Link>
 
       <section className="mt-6 rounded-3xl border border-border bg-surface p-6 text-sm sm:p-8">
         <h2 className="font-display text-xl font-extrabold">Compte</h2>

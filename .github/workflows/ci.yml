@@ -64,6 +64,7 @@ jobs:
             echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(jq -r .PUBLISHABLE_KEY /tmp/supabase.json)"
             echo "SUPABASE_SECRET_KEY=$(jq -r .SECRET_KEY /tmp/supabase.json)"
             echo "MAILPIT_URL=$(jq -r .MAILPIT_URL /tmp/supabase.json)"
+            echo "DATABASE_URL=$(jq -r .DB_URL /tmp/supabase.json)"
           } >> "$GITHUB_ENV"
 
       - name: Tests de la base (pgTAP)
