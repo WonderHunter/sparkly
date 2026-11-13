@@ -164,6 +164,8 @@ export type CommentWithAuthor = {
   parent_id: string | null;
   post_id: string | null;
   hidden_at: string | null;
+  /** Application (agent IA) qui a écrit le commentaire au nom de l'auteur·rice. */
+  via_agent: string | null;
   author: PublicProfile | null;
   /** Financement auquel ce commentaire est joint (mot d'un·e enseignant·e). */
   investment: { amount: number } | null;
@@ -178,7 +180,7 @@ export async function listComments(projectId: string, postId: string | null = nu
   const supabase = await createClient();
   let query = supabase
     .from("comments")
-    .select(`id, body, created_at, updated_at, parent_id, post_id, hidden_at, author:profiles(${PROFILE_FIELDS}), investment:investments(amount)`)
+    .select(`id, body, created_at, updated_at, parent_id, post_id, hidden_at, via_agent, author:profiles(${PROFILE_FIELDS}), investment:investments(amount)`)
     .eq("project_id", projectId);
   query = postId ? query.eq("post_id", postId) : query.is("post_id", null);
   const { data } = await query.order("created_at", { ascending: true }).limit(500);

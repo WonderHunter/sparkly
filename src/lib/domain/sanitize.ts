@@ -23,7 +23,9 @@ export function sanitizeRichText(html: string): string {
 
 /** Texte brut (extraits, cartes, métadonnées). */
 export function toPlainText(html: string, maxLength?: number): string {
-  const text = sanitizeHtml(html ?? "", { allowedTags: [], allowedAttributes: {} })
+  // Un espace après chaque bloc (paragraphe, titre, élément de liste…), sinon « Titre</h2><p>Texte » devient « TitreTexte ».
+  const spaced = (html ?? "").replace(/<\/(p|h[1-6]|li|blockquote|pre|div)>|<br\s*\/?>|<hr\s*\/?>/gi, "$& ");
+  const text = sanitizeHtml(spaced, { allowedTags: [], allowedAttributes: {} })
     .replace(/\s+/g, " ")
     .trim();
   if (maxLength && text.length > maxLength) return `${text.slice(0, maxLength - 1).trimEnd()}…`;

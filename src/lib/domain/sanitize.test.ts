@@ -26,6 +26,9 @@ describe("toPlainText / isEmptyRichText", () => {
   it("extrait et tronque le texte", () => {
     expect(toPlainText("<p>Bonjour   <b>tout</b> le monde</p>")).toBe("Bonjour tout le monde");
     expect(toPlainText("<p>abcdefghij</p>", 6)).toBe("abcde…");
+    expect(toPlainText("<h2>Cette semaine</h2><p>On a fini.</p><ul><li><p>un</p></li><li><p>deux</p></li></ul><p>a<br>b</p>")).toBe(
+      "Cette semaine On a fini. un deux a b",
+    );
   });
 
   it("détecte un contenu vide", () => {

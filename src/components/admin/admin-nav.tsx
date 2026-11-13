@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Flag, FolderKanban, LayoutDashboard, Settings, Users } from "lucide-react";
+import { Bot, Flag, FolderKanban, LayoutDashboard, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
@@ -12,7 +12,12 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
     { href: "/admin/projects", label: "Projets", icon: FolderKanban },
     { href: "/admin/reports", label: "Signalements", icon: Flag },
     { href: "/admin/users", label: "Comptes", icon: Users },
-    ...(isAdmin ? [{ href: "/admin/settings", label: "Réglages", icon: Settings }] : []),
+    ...(isAdmin
+      ? [
+          { href: "/admin/agents", label: "Agents IA", icon: Bot },
+          { href: "/admin/settings", label: "Réglages", icon: Settings },
+        ]
+      : []),
   ];
   return (
     <nav aria-label="Administration" className="-mx-4 min-w-0 px-4 sm:mx-0 sm:px-0 lg:sticky lg:top-24 lg:self-start">

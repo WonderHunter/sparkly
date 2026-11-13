@@ -13,16 +13,20 @@ export interface NotificationItem {
   postNumber: number | null;
   project: { slug: string; title: string } | null;
   actor: { displayName: string; avatarUrl: string | null } | null;
+  /** Nom de la connexion d'agent (rappel d'expiration). */
+  agentName: string | null;
 }
 
 /** Dernières notifications de l'utilisateur connecté (la RLS ne renvoie que les siennes) et nombre de non lues. */
 export const getNotifications = cache(async (limit = 8): Promise<{ items: NotificationItem[]; unread: number }> => {
   const supabase = await createClient();
+  // Rappels « ta connexion d'agent expire bientôt » créés à la volée : pas de tâche planifiée.
+  await supabase.rpc("agent_expiry_reminders");
   const [list, unread] = await Promise.all([
     supabase
       .from("notifications")
       .select(
-        "id, kind, read_at, created_at, comment_id, team_title, project_title, comment:comments(body, post:posts(number)), project:projects(slug, title), actor:profiles!notifications_actor_id_fkey(display_name, avatar_url)",
+        "id, kind, read_at, created_at, comment_id, team_title, project_title, agent_name, comment:comments(body, post:posts(number)), project:projects(slug, title), actor:profiles!notifications_actor_id_fkey(display_name, avatar_url)",
       )
       .order("created_at", { ascending: false })
       .limit(limit),
@@ -40,6 +44,7 @@ export const getNotifications = cache(async (limit = 8): Promise<{ items: Notifi
     // Projet en brouillon invisible pour une personne seulement invitée : on garde le titre copié.
     project: n.project ?? (n.project_title ? { slug: "", title: n.project_title } : null),
     actor: n.actor ? { displayName: n.actor.display_name, avatarUrl: n.actor.avatar_url } : null,
+    agentName: n.agent_name,
   }));
   return { items, unread: unread.count ?? 0 };
 });

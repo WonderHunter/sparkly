@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PostMedia } from "@/components/project/post-media";
 import { Avatar } from "@/components/ui/misc";
+import { ViaAgent } from "@/components/ui/via-agent";
 import { sanitizeRichText, toPlainText } from "@/lib/domain/sanitize";
 import type { PostWithAuthor } from "@/lib/data/projects";
 import { formatDate } from "@/lib/utils";
@@ -25,6 +26,12 @@ export function PostCard({ post, slug, full = false }: { post: PostWithAuthor; s
         <p className="mt-2 flex items-center gap-2 text-sm text-muted">
           <Avatar name={post.author.display_name} src={post.author.avatar_url} size="sm" />
           {post.author.display_name}
+          {post.via_agent && (
+            <>
+              <span aria-hidden>·</span>
+              <ViaAgent name={post.via_agent} />
+            </>
+          )}
         </p>
       )}
       {!full && <p className="mt-3 line-clamp-3 text-[15px] text-foreground/85">{toPlainText(post.body, 320)}</p>}

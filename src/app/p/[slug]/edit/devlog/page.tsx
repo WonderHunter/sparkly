@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { FormMessage } from "@/components/ui/form";
 import { Badge, EmptyState } from "@/components/ui/misc";
+import { ViaAgent } from "@/components/ui/via-agent";
 import { getEditContext } from "@/lib/data/editor";
 import { listPosts } from "@/lib/data/projects";
 import { formatDate } from "@/lib/utils";
@@ -52,6 +53,12 @@ export default async function DevlogTab({ params, searchParams }: PageProps<"/p/
                 <p className="text-sm text-muted">
                   {post.published_at ? `Publiée le ${formatDate(post.published_at)}` : `Créée le ${formatDate(post.created_at)}`}
                   {post.author && ` · ${post.author.display_name}`}
+                  {post.via_agent && (
+                    <>
+                      {" · "}
+                      <ViaAgent name={post.via_agent} />
+                    </>
+                  )}
                 </p>
               </div>
               {post.status === "published" && (
