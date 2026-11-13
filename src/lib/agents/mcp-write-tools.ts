@@ -34,8 +34,18 @@ async function editableProject(sql: Sql, projectSlug: string) {
   return project;
 }
 
-async function siteUrl() {
-  return (await getSiteUrl()).replace(/\/$/, "");
+/** Adresse publique du site, si on peut la connaître : un lien manquant ne doit jamais annuler une écriture. */
+async function siteUrl(): Promise<string | null> {
+  try {
+    return (await getSiteUrl()).replace(/\/$/, "");
+  } catch {
+    return null;
+  }
+}
+
+/** Lien complet vers une page du site, ou le chemin seul si l'adresse publique est inconnue. */
+async function pageUrl(path: string) {
+  return `${(await siteUrl()) ?? ""}${path}`;
 }
 
 export const WRITE_TOOLS: ToolDefinition[] = [
@@ -98,7 +108,7 @@ export const WRITE_TOOLS: ToolDefinition[] = [
         async (sql) => {
           const project = await editableProject(sql, input.slug as string);
           await sql`update public.projects set story = ${richText(input.texte as string)} where id = ${project.id}`;
-          return { ok: true, adresse: `${await siteUrl()}/p/${project.slug}` };
+          return { ok: true, adresse: await pageUrl(`/p/${project.slug}`) };
         },
         id.clientName,
       ),
@@ -226,7 +236,7 @@ export const WRITE_TOOLS: ToolDefinition[] = [
             id: post.id,
             statut: post.status === "published" ? "publiée" : "brouillon",
             numero: post.number,
-            adresse: post.number ? `${await siteUrl()}/p/${project.slug}/devlog/${post.number}` : `${await siteUrl()}/p/${project.slug}/edit/devlog`,
+            adresse: await pageUrl(post.number ? `/p/${project.slug}/devlog/${post.number}` : `/p/${project.slug}/edit/devlog`),
           };
         },
         id.clientName,
@@ -286,7 +296,7 @@ export const WRITE_TOOLS: ToolDefinition[] = [
           if (isEmptyRichText(current.body) && current.images.length === 0) throw new ToolError("Ajoute un texte avant de publier.");
           const [post] = await sql<{ number: number }[]>`
             update public.posts set status = 'published' where id = ${input.id as string} returning number`;
-          return { ok: true, numero: post.number, adresse: `${await siteUrl()}/p/${current.slug}/devlog/${post.number}` };
+          return { ok: true, numero: post.number, adresse: await pageUrl(`/p/${current.slug}/devlog/${post.number}`) };
         },
         id.clientName,
       ),
