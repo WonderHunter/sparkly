@@ -10,9 +10,17 @@ export const AGENT_SCOPES = {
   projet: { label: "Modifier tes projets", description: "Bases, description, liens, FAQ et planning.", available: true },
   devlog: { label: "Écrire des actualités", description: "Créer, modifier et publier des mises à jour.", available: true },
   commentaires: { label: "Commenter", description: "Commenter, répondre et signaler.", available: true },
-  contraintes: { label: "Fixer les contraintes", description: "Plateforme, type de jeu, personnage et émotion.", available: false },
-  financement: { label: "Financer", description: "Financer des projets, avec confirmation.", available: false },
-  moderation: { label: "Modérer", description: "Masquer ou rétablir des contenus, avec confirmation.", available: false },
+  contraintes: { label: "Fixer les contraintes", description: "Plateforme, type de jeu, personnage et émotion des projets.", available: true },
+  financement: {
+    label: "Financer",
+    description: "Financer, modifier ou retirer un financement : toujours après un récapitulatif à confirmer, 10 par jour au plus.",
+    available: true,
+  },
+  moderation: {
+    label: "Modérer",
+    description: "Lire les signalements, masquer ou rétablir un contenu, publier un brouillon : avec un récapitulatif à confirmer.",
+    available: true,
+  },
 } as const;
 
 export type AgentScope = keyof typeof AGENT_SCOPES;
@@ -23,6 +31,11 @@ const BY_ROLE: Record<UserRole, AgentScope[]> = {
   teacher: ["lecture", "commentaires", "contraintes", "financement", "moderation"],
   admin: ["lecture", "commentaires", "contraintes", "moderation"],
 };
+
+/** Rôles qui peuvent accorder une permission (pour la documentation). */
+export function rolesForScope(scope: AgentScope): UserRole[] {
+  return (Object.keys(BY_ROLE) as UserRole[]).filter((role) => BY_ROLE[role].includes(scope));
+}
 
 /** Permissions proposées à la personne : autorisées pour son rôle, disponibles et non désactivées par l'admin. */
 export function grantableScopes(role: UserRole, disabled: readonly string[] = []): AgentScope[] {

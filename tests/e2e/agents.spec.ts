@@ -154,4 +154,37 @@ test.describe("agents IA", () => {
     await expect(page.getByRole("button", { name: "Révoquer Script E2E" })).toHaveCount(0);
     expect((await initialize(request, secret)).status).toBe(401);
   });
+  test("une enseignante finance via un agent, en deux temps, avec la mention « via »", async ({ page, request }) => {
+    await login(page, "prof.demo@univ-reims.fr", "/settings/agents");
+    await page.getByRole("button", { name: "Nouvelle clé" }).click();
+    const dialog = page.getByRole("dialog", { name: "Nouvelle clé d'API" });
+    await dialog.getByLabel("Nom").fill("Agent prof E2E");
+    await dialog.getByRole("button", { name: "Créer la clé" }).click();
+    await expect(page.getByRole("heading", { name: "Ta nouvelle clé" })).toBeVisible();
+    const secret = (await page.locator("dialog code").textContent())!.trim();
+
+    const params = { slug: "table-tempete", montant: 777, mot: "Financé par mon agent" };
+    const recap = await callTool(request, secret, "financer", params);
+    expect(recap.confirmation_requise).toBe(true);
+    expect(recap.recapitulatif).toContain("Table Tempête");
+    const done = await callTool(request, secret, "financer", { ...params, confirmation: recap.code_de_confirmation });
+    expect(done.ok).toBe(true);
+
+    await page.goto("/p/table-tempete/comments");
+    const comment = page.locator("article", { hasText: "Financé par mon agent" });
+    await expect(comment.getByText("via Agent prof E2E")).toBeVisible();
+    await expect(comment.getByText(/A financé 777/)).toBeVisible();
+
+    // Nettoyage : retrait, toujours confirmé.
+    const withdraw = await callTool(request, secret, "retirer_financement", { financement_id: done.financement_id });
+    expect((await callTool(request, secret, "retirer_financement", { financement_id: done.financement_id, confirmation: withdraw.code_de_confirmation })).ok).toBe(true);
+  });
+
+  test("le guide des agents est public et rangé dans /docs", async ({ page }) => {
+    await page.goto("/docs");
+    await expect(page).toHaveURL(/\/docs\/agents$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Connecter un agent IA à Sparkly" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Actions à confirmer" })).toBeVisible();
+    await expect(page.getByText("financer", { exact: true })).toBeVisible();
+  });
 });

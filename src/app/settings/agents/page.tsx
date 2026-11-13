@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, Bot, History, KeyRound, PlugZap, TriangleAlert } from "lucide-react";
+import { ArrowLeft, BadgeCheck, BookOpen, Bot, History, KeyRound, PlugZap, TriangleAlert } from "lucide-react";
 import { EditorSection } from "@/components/editor/editor-section";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Badge } from "@/components/ui/misc";
@@ -10,7 +10,8 @@ import { AGENT_SCOPES, grantableScopes, isAgentScope } from "@/lib/agents/scopes
 import { createClient } from "@/lib/supabase/server";
 import { formatRelative } from "@/lib/utils";
 import { revokeAllConnections, revokeConnection } from "./actions";
-import { CopyButton, ExpiryForm, NewKeyDialog } from "./agents-ui";
+import { CopyButton } from "@/components/ui/copy-button";
+import { ExpiryForm, NewKeyDialog } from "./agents-ui";
 
 export const metadata: Metadata = { title: "Agents IA" };
 
@@ -54,7 +55,34 @@ const TOOL_LABEL: Record<string, string> = {
   commenter: "a commenté",
   repondre: "a répondu à un commentaire",
   signaler: "a signalé un contenu",
+  lister_contraintes: "a consulté les contraintes possibles",
+  fixer_contraintes: "a fixé les contraintes d'un projet",
+  mon_budget: "a consulté ton budget",
+  financer: "a financé un projet",
+  modifier_financement: "a modifié un financement",
+  retirer_financement: "a retiré un financement",
+  voir_signalements: "a lu les signalements",
+  resoudre_signalement: "a classé un signalement",
+  masquer: "a masqué un contenu",
+  retablir: "a rétabli un contenu",
+  publier_brouillon: "a publié un brouillon",
 };
+
+/** Premier temps des actions sensibles : récapitulatif préparé, à confirmer. */
+const RECAP_LABEL: Record<string, string> = {
+  financer: "a préparé un financement",
+  modifier_financement: "a préparé la modification d'un financement",
+  retirer_financement: "a préparé le retrait d'un financement",
+  masquer: "a préparé le masquage d'un contenu",
+  retablir: "a préparé le rétablissement d'un contenu",
+  publier_brouillon: "a préparé la publication d'un brouillon",
+};
+
+function toolLabel(tool: string) {
+  const [name, step] = tool.split(":");
+  if (step === "recap") return `${RECAP_LABEL[name] ?? name} (récapitulatif, rien n'est encore fait)`;
+  return TOOL_LABEL[name] ?? name;
+}
 
 export default async function AgentsPage() {
   const viewer = await requireViewer("/settings/agents");
@@ -118,6 +146,9 @@ export default async function AgentsPage() {
             <strong className="text-foreground">Script ou autre outil</strong> : crée une clé d&apos;API ci-dessous.
           </li>
         </ul>
+        <Link href="/docs/agents" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-spark-strong hover:underline">
+          <BookOpen className="h-4 w-4" aria-hidden /> Lire le guide complet : permissions, exemples, limites et sécurité
+        </Link>
       </EditorSection>
 
       <section className="mt-6 rounded-3xl border border-border bg-surface p-6 sm:p-8" aria-labelledby="apps-title">
@@ -261,7 +292,7 @@ function ConnectionRow({
               <ul className="mt-1 space-y-0.5 text-xs text-muted">
                 {audit.slice(0, 10).map((a, i) => (
                   <li key={i}>
-                    {formatRelative(a.created_at)} — {displayName} {TOOL_LABEL[a.tool] ?? a.tool}
+                    {formatRelative(a.created_at)} — {displayName} {toolLabel(a.tool)}
                     {!a.ok && <span className="text-danger"> (refusé)</span>}
                   </li>
                 ))}

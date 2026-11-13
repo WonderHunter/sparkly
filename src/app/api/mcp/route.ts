@@ -9,7 +9,7 @@ const handler = createMcpHandler(
     for (const tool of TOOLS) {
       server.registerTool(
         tool.name,
-        { title: tool.title, description: tool.description, inputSchema: tool.inputSchema, annotations: { readOnlyHint: !tool.write, destructiveHint: false } },
+        { title: tool.title, description: tool.description, inputSchema: tool.inputSchema, annotations: { readOnlyHint: !tool.write, destructiveHint: Boolean(tool.confirm) } },
         async (input, ctx) => {
           const identity = ctx.http?.authInfo?.extra?.identity as AgentIdentity | undefined;
           if (!identity) return { content: [{ type: "text", text: "Non authentifié." }], isError: true };
