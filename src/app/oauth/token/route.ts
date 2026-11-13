@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { authenticateClient } from "@/lib/agents/clients";
 import { agentUrls, CORS_HEADERS } from "@/lib/agents/config";
 import { exchangeCode, OAuthError, refreshTokens } from "@/lib/agents/tokens";
 
@@ -17,10 +18,22 @@ export async function POST(request: NextRequest) {
     return typeof value === "string" && value.length > 0 ? value : null;
   };
 
-  const clientId = get("client_id");
+  // Identifiants de l'application : en-tête Basic (client_secret_basic) ou corps (client_secret_post / public).
+  let clientId = get("client_id");
+  let clientSecret = get("client_secret");
+  const basic = request.headers.get("authorization");
+  if (basic?.toLowerCase().startsWith("basic ")) {
+    const decoded = Buffer.from(basic.slice(6).trim(), "base64").toString("utf8");
+    const sep = decoded.indexOf(":");
+    if (sep > 0) {
+      clientId = decodeURIComponent(decoded.slice(0, sep));
+      clientSecret = decodeURIComponent(decoded.slice(sep + 1)) || null;
+    }
+  }
   if (!clientId) return oauthError("invalid_client", "client_id manquant.", 401);
 
   try {
+    if (!(await authenticateClient(clientId, clientSecret))) return oauthError("invalid_client", "Secret de l'application invalide.", 401);
     const grant = get("grant_type");
     if (grant === "authorization_code") {
       const code = get("code");
@@ -40,7 +53,8 @@ export async function POST(request: NextRequest) {
     return oauthError("unsupported_grant_type", "Seuls authorization_code et refresh_token sont acceptés.");
   } catch (error) {
     if (error instanceof OAuthError) return oauthError(error.code, error.message, error.code === "invalid_client" ? 401 : 400);
-    throw error;
+    console.error("Point de jeton :", error);
+    return oauthError("server_error", "Erreur technique côté Sparkly, réessaie dans quelques minutes.", 500);
   }
 }
 

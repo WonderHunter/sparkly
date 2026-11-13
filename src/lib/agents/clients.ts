@@ -1,9 +1,24 @@
 import "server-only";
 import { lookup } from "node:dns/promises";
+import { timingSafeEqual } from "node:crypto";
 import { isIP } from "node:net";
 import { z } from "zod";
-import { randomToken } from "./crypto";
+import { randomToken, sha256Hex } from "./crypto";
 import { db } from "./db";
+
+/** Refus attendu (application invalide, adresse refusée…) : son message peut être montré tel quel. */
+export class ClientError extends Error {
+  constructor(
+    message: string,
+    readonly code: "invalid_client_metadata" | "invalid_redirect_uri" | "temporarily_unavailable" = "invalid_client_metadata",
+  ) {
+    super(message);
+  }
+}
+
+/** Méthodes d'authentification au point de jeton acceptées à l'enregistrement. */
+export const CLIENT_AUTH_METHODS = ["none", "client_secret_post", "client_secret_basic"] as const;
+export type ClientAuthMethod = (typeof CLIENT_AUTH_METHODS)[number];
 
 export interface AgentClient {
   id: string;
@@ -14,6 +29,7 @@ export interface AgentClient {
   redirectUris: string[];
   verified: boolean;
   blocked: boolean;
+  authMethod: ClientAuthMethod;
 }
 
 /** Domaines des applications connues : leurs documents de métadonnées valent badge « vérifiée ». */
@@ -77,24 +93,33 @@ const metadataSchema = z.object({
 async function fetchClientMetadata(clientId: string): Promise<z.infer<typeof metadataSchema>> {
   const url = new URL(clientId);
   if (url.protocol !== "https:" || url.username || url.password || url.hash || url.pathname === "/") {
-    throw new Error("Identifiant d'application invalide.");
+    throw new ClientError("Identifiant d'application invalide.");
   }
   if (isIP(url.hostname) || url.hostname === "localhost" || !url.hostname.includes(".")) {
-    throw new Error("Hôte d'application refusé.");
+    throw new ClientError("Hôte d'application refusé.");
   }
-  const addresses = await lookup(url.hostname, { all: true });
-  if (addresses.some((a) => isPrivateAddress(a.address))) throw new Error("Hôte d'application refusé.");
+  const addresses = await lookup(url.hostname, { all: true }).catch(() => {
+    throw new ClientError("Hôte d'application introuvable.");
+  });
+  if (addresses.some((a) => isPrivateAddress(a.address))) throw new ClientError("Hôte d'application refusé.");
 
-  const res = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(3000), headers: { accept: "application/json" } });
-  if (!res.ok) throw new Error("Document de l'application introuvable.");
+  const res = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(3000), headers: { accept: "application/json" } }).catch(() => {
+    throw new ClientError("Document de l'application injoignable (délai dépassé ou redirection).");
+  });
+  if (!res.ok) throw new ClientError("Document de l'application introuvable.");
   const text = await res.text();
-  if (text.length > 10_000) throw new Error("Document de l'application trop volumineux.");
-  const parsed = metadataSchema.parse(JSON.parse(text));
-  if (parsed.client_id !== clientId) throw new Error("Le document ne correspond pas à l'application.");
-  if (parsed.token_endpoint_auth_method && parsed.token_endpoint_auth_method !== "none") {
-    throw new Error("Seules les applications publiques (PKCE) sont acceptées.");
+  if (text.length > 10_000) throw new ClientError("Document de l'application trop volumineux.");
+  let parsed: z.infer<typeof metadataSchema>;
+  try {
+    parsed = metadataSchema.parse(JSON.parse(text));
+  } catch {
+    throw new ClientError("Document de l'application illisible.");
   }
-  if (!parsed.redirect_uris.every(isAcceptableRedirectUri)) throw new Error("Adresse de redirection refusée.");
+  if (parsed.client_id !== clientId) throw new ClientError("Le document ne correspond pas à l'application.");
+  if (parsed.token_endpoint_auth_method && parsed.token_endpoint_auth_method !== "none") {
+    throw new ClientError("Seules les applications publiques (PKCE) sont acceptées.");
+  }
+  if (!parsed.redirect_uris.every(isAcceptableRedirectUri)) throw new ClientError("Adresse de redirection refusée.");
   return parsed;
 }
 
@@ -108,6 +133,8 @@ type ClientRow = {
   verified: boolean;
   blocked_at: Date | null;
   metadata_fetched_at: Date | null;
+  token_endpoint_auth_method: ClientAuthMethod;
+  secret_hash: string | null;
 };
 
 function toClient(row: ClientRow): AgentClient {
@@ -120,6 +147,7 @@ function toClient(row: ClientRow): AgentClient {
     redirectUris: row.redirect_uris,
     verified: row.verified,
     blocked: row.blocked_at !== null,
+    authMethod: row.token_endpoint_auth_method,
   };
 }
 
@@ -130,7 +158,7 @@ export async function resolveClient(clientId: string): Promise<AgentClient> {
   const isUrl = clientId.startsWith("https://");
   const fresh = row?.metadata_fetched_at && Date.now() - row.metadata_fetched_at.getTime() < 24 * 3600 * 1000;
   if (!isUrl || (row && fresh)) {
-    if (!row) throw new Error("Application inconnue.");
+    if (!row) throw new ClientError("Application inconnue.");
     return toClient(row);
   }
 
@@ -160,22 +188,39 @@ export const registrationSchema = z.object({
  * Enregistrement dynamique (RFC 7591), gardé pour les applications qui ne publient pas encore de document
  * de métadonnées. Le nom est auto-déclaré : l'application n'est jamais « vérifiée » par ce biais.
  */
-export async function registerClient(input: z.infer<typeof registrationSchema>): Promise<AgentClient> {
-  if (input.token_endpoint_auth_method && input.token_endpoint_auth_method !== "none") {
-    throw new Error("invalid_client_metadata: seules les applications publiques (PKCE) sont acceptées.");
+export async function registerClient(input: z.infer<typeof registrationSchema>): Promise<{ client: AgentClient; secret: string | null }> {
+  const method = (input.token_endpoint_auth_method ?? "none") as ClientAuthMethod;
+  if (!CLIENT_AUTH_METHODS.includes(method)) {
+    throw new ClientError("Méthode d'authentification non prise en charge (none, client_secret_post ou client_secret_basic).");
   }
   if (!input.redirect_uris.every(isAcceptableRedirectUri)) {
-    throw new Error("invalid_redirect_uri: adresse de redirection refusée (https, ou http://localhost).");
+    throw new ClientError("Adresse de redirection refusée (https, ou http://localhost).", "invalid_redirect_uri");
   }
   const sql = db();
   const [{ recent }] = await sql<{ recent: number }[]>`
     select count(*)::int as recent from public.agent_clients where kind = 'registered' and created_at > now() - interval '1 hour'`;
-  if (recent >= 100) throw new Error("temporarily_unavailable: trop d'enregistrements, réessaie plus tard.");
+  if (recent >= 100) throw new ClientError("Trop d'enregistrements, réessaie plus tard.", "temporarily_unavailable");
 
   const logo = input.logo_uri?.startsWith("https://") ? input.logo_uri : null;
+  // Application « confidentielle » : un secret remis une seule fois, dont on ne garde que l'empreinte.
+  const secret = method === "none" ? null : randomToken("scs");
   const [row] = await sql<ClientRow[]>`
-    insert into public.agent_clients (client_id, kind, name, logo_url, redirect_uris)
-    values (${randomToken("spc")}, 'registered', ${input.client_name ?? "Application"}, ${logo}, ${input.redirect_uris})
+    insert into public.agent_clients (client_id, kind, name, logo_url, redirect_uris, token_endpoint_auth_method, secret_hash)
+    values (${randomToken("spc")}, 'registered', ${input.client_name ?? "Application"}, ${logo}, ${input.redirect_uris},
+            ${method}, ${secret ? sha256Hex(secret) : null})
     returning *`;
-  return toClient(row);
+  return { client: toClient(row), secret };
+}
+
+/**
+ * Authentifie l'application au point de jeton : rien à vérifier pour une application publique
+ * (PKCE suffit) ; pour une application enregistrée avec un secret, il doit correspondre.
+ */
+export async function authenticateClient(clientId: string, secret: string | null): Promise<boolean> {
+  const [row] = await db()<{ secret_hash: string | null }[]>`select secret_hash from public.agent_clients where client_id = ${clientId}`;
+  if (!row?.secret_hash) return true;
+  if (!secret) return false;
+  const given = Buffer.from(sha256Hex(secret), "hex");
+  const expected = Buffer.from(row.secret_hash, "hex");
+  return given.length === expected.length && timingSafeEqual(given, expected);
 }
