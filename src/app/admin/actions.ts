@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin, requireStaff } from "@/lib/auth";
+import { AGENT_SCOPES, DISABLEABLE_SCOPES } from "@/lib/agents/scopes";
 import { slugify } from "@/lib/domain/slug";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -230,4 +231,48 @@ export async function updateFundingSettings(_prev: FormState, formData: FormData
   if (error) return { error: "Enregistrement impossible." };
   revalidatePath("/", "layout");
   return { ok: true, message: "Réglages enregistrés." };
+}
+
+// ---------------------------------------------------------------------------
+// Agents IA (admin)
+// ---------------------------------------------------------------------------
+const agentSettingsSchema = z.object({
+  maxDays: z.coerce.number().int("Nombre de jours entier.").min(1, "Au moins 1 jour.").max(366, "366 jours au plus."),
+});
+
+export async function updateAgentSettings(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const parsed = agentSettingsSchema.safeParse({ maxDays: formData.get("maxDays") ?? "" });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const supabase = await createClient();
+  // Permissions décochées = désactivées pour tout le monde (celles pas encore livrées gardent leur état).
+  const enabled = formData.getAll("enabledScopes");
+  const { data: current } = await supabase.from("app_settings").select("agent_disabled_scopes").single();
+  const disabled = DISABLEABLE_SCOPES.filter((s) =>
+    AGENT_SCOPES[s].available ? !enabled.includes(s) : (current?.agent_disabled_scopes ?? []).includes(s),
+  );
+  const { error } = await supabase
+    .from("app_settings")
+    .update({ agents_enabled: formData.get("agentsEnabled") === "on", agent_max_days: parsed.data.maxDays, agent_disabled_scopes: disabled })
+    .eq("id", true);
+  if (error) return { error: "Enregistrement impossible." };
+  revalidatePath("/admin/agents");
+  revalidatePath("/settings/agents");
+  return { ok: true, message: "Réglages des agents enregistrés." };
+}
+
+export async function adminRevokeAgentConnection(connectionId: string) {
+  await requireAdmin();
+  if (!uuid.safeParse(connectionId).success) return;
+  const supabase = await createClient();
+  await supabase.rpc("revoke_agent_connection", { p_connection: connectionId });
+  revalidatePath("/admin/agents");
+}
+
+export async function adminSetAgentClient(clientId: string, verified: boolean, blocked: boolean) {
+  await requireAdmin();
+  if (!uuid.safeParse(clientId).success) return;
+  const supabase = await createClient();
+  await supabase.rpc("admin_set_agent_client", { p_client: clientId, p_verified: verified, p_blocked: blocked });
+  revalidatePath("/admin/agents");
 }

@@ -23,7 +23,125 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "allowed_email_domains": {
+            "agent_audit": {
+                  Row: {
+                    "client_name": string | null,"client_version": string | null,"connection_id": string,"created_at": string,"error": string | null,"id": number,"ok": boolean,"tool": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_name"?: string | null,"client_version"?: string | null,"connection_id": string,"created_at"?: string,"error"?: string | null,"id"?: never,"ok": boolean,"tool": string,"user_id": string
+                  }
+                  Update: {
+                    "client_name"?: string | null,"client_version"?: string | null,"connection_id"?: string,"created_at"?: string,"error"?: string | null,"id"?: never,"ok"?: boolean,"tool"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_audit_connection_id_fkey"
+      columns: ["connection_id"]
+isOneToOne: false
+      referencedRelation: "agent_connections"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "agent_audit_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"agent_clients": {
+                  Row: {
+                    "blocked_at": string | null,"client_id": string,"created_at": string,"id": string,"kind": string,"logo_url": string | null,"metadata_fetched_at": string | null,"name": string,"redirect_uris": (string)[],"verified": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "blocked_at"?: string | null,"client_id": string,"created_at"?: string,"id"?: string,"kind": string,"logo_url"?: string | null,"metadata_fetched_at"?: string | null,"name": string,"redirect_uris": (string)[],"verified"?: boolean
+                  }
+                  Update: {
+                    "blocked_at"?: string | null,"client_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"logo_url"?: string | null,"metadata_fetched_at"?: string | null,"name"?: string,"redirect_uris"?: (string)[],"verified"?: boolean
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"agent_codes": {
+                  Row: {
+                    "client_id": string,"code_challenge": string,"connection_id": string | null,"created_at": string,"expires_at": string,"expires_on": string,"hash": string,"redirect_uri": string,"resource": string,"scopes": (string)[],"used_at": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_id": string,"code_challenge": string,"connection_id"?: string | null,"created_at"?: string,"expires_at": string,"expires_on": string,"hash": string,"redirect_uri": string,"resource": string,"scopes": (string)[],"used_at"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "client_id"?: string,"code_challenge"?: string,"connection_id"?: string | null,"created_at"?: string,"expires_at"?: string,"expires_on"?: string,"hash"?: string,"redirect_uri"?: string,"resource"?: string,"scopes"?: (string)[],"used_at"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_codes_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "agent_clients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "agent_codes_connection_id_fkey"
+      columns: ["connection_id"]
+isOneToOne: false
+      referencedRelation: "agent_connections"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "agent_codes_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"agent_connections": {
+                  Row: {
+                    "client_id": string | null,"created_at": string,"expires_at": string,"id": string,"key_prefix": string | null,"kind": string,"last_used_at": string | null,"name": string,"revoked_at": string | null,"scopes": (string)[],"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "client_id"?: string | null,"created_at"?: string,"expires_at": string,"id"?: string,"key_prefix"?: string | null,"kind": string,"last_used_at"?: string | null,"name": string,"revoked_at"?: string | null,"scopes": (string)[],"user_id": string
+                  }
+                  Update: {
+                    "client_id"?: string | null,"created_at"?: string,"expires_at"?: string,"id"?: string,"key_prefix"?: string | null,"kind"?: string,"last_used_at"?: string | null,"name"?: string,"revoked_at"?: string | null,"scopes"?: (string)[],"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_connections_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "agent_clients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "agent_connections_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"agent_tokens": {
+                  Row: {
+                    "connection_id": string,"created_at": string,"expires_at": string,"hash": string,"kind": string,"used_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "connection_id": string,"created_at"?: string,"expires_at": string,"hash": string,"kind": string,"used_at"?: string | null
+                  }
+                  Update: {
+                    "connection_id"?: string,"created_at"?: string,"expires_at"?: string,"hash"?: string,"kind"?: string,"used_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_tokens_connection_id_fkey"
+      columns: ["connection_id"]
+isOneToOne: false
+      referencedRelation: "agent_connections"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"allowed_email_domains": {
                   Row: {
                     "created_at": string,"default_role": Database["public"]['Enums']["user_role"],"domain": string
                   }
@@ -39,14 +157,14 @@ export type Database = {
                   ]
                 },"app_settings": {
                   Row: {
-                    "admin_emails": (string)[],"default_ends_on": string,"default_starts_on": string,"funding_comments_enabled": boolean,"funding_goal": number,"id": boolean,"max_projects_per_student": number | null,"school_year": string,"teacher_annual_budget": number,"updated_at": string
+                    "admin_emails": (string)[],"agent_disabled_scopes": (string)[],"agent_max_days": number,"agents_enabled": boolean,"default_ends_on": string,"default_starts_on": string,"funding_comments_enabled": boolean,"funding_goal": number,"id": boolean,"max_projects_per_student": number | null,"school_year": string,"teacher_annual_budget": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"funding_comments_enabled"?: boolean,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
+                    "admin_emails"?: (string)[],"agent_disabled_scopes"?: (string)[],"agent_max_days"?: number,"agents_enabled"?: boolean,"default_ends_on"?: string,"default_starts_on"?: string,"funding_comments_enabled"?: boolean,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "admin_emails"?: (string)[],"default_ends_on"?: string,"default_starts_on"?: string,"funding_comments_enabled"?: boolean,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
+                    "admin_emails"?: (string)[],"agent_disabled_scopes"?: (string)[],"agent_max_days"?: number,"agents_enabled"?: boolean,"default_ends_on"?: string,"default_starts_on"?: string,"funding_comments_enabled"?: boolean,"funding_goal"?: number,"id"?: boolean,"max_projects_per_student"?: number | null,"school_year"?: string,"teacher_annual_budget"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -81,14 +199,14 @@ export type Database = {
                   ]
                 },"comments": {
                   Row: {
-                    "author_id": string,"body": string,"created_at": string,"hidden_at": string | null,"id": string,"investment_id": string | null,"parent_id": string | null,"post_id": string | null,"project_id": string,"updated_at": string
+                    "author_id": string,"body": string,"created_at": string,"hidden_at": string | null,"id": string,"investment_id": string | null,"parent_id": string | null,"post_id": string | null,"project_id": string,"updated_at": string,"via_agent": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_id": string,"body": string,"created_at"?: string,"hidden_at"?: string | null,"id"?: string,"investment_id"?: string | null,"parent_id"?: string | null,"post_id"?: string | null,"project_id": string,"updated_at"?: string
+                    "author_id": string,"body": string,"created_at"?: string,"hidden_at"?: string | null,"id"?: string,"investment_id"?: string | null,"parent_id"?: string | null,"post_id"?: string | null,"project_id": string,"updated_at"?: string,"via_agent"?: string | null
                   }
                   Update: {
-                    "author_id"?: string,"body"?: string,"created_at"?: string,"hidden_at"?: string | null,"id"?: string,"investment_id"?: string | null,"parent_id"?: string | null,"post_id"?: string | null,"project_id"?: string,"updated_at"?: string
+                    "author_id"?: string,"body"?: string,"created_at"?: string,"hidden_at"?: string | null,"id"?: string,"investment_id"?: string | null,"parent_id"?: string | null,"post_id"?: string | null,"project_id"?: string,"updated_at"?: string,"via_agent"?: string | null
                   }
                   Relationships: [
                     {
@@ -261,14 +379,14 @@ isOneToOne: false
                   ]
                 },"notifications": {
                   Row: {
-                    "actor_id": string | null,"comment_id": string | null,"created_at": string,"id": string,"invitation_id": string | null,"kind": string,"project_id": string,"project_title": string | null,"read_at": string | null,"team_title": string | null,"user_id": string
+                    "actor_id": string | null,"agent_connection_id": string | null,"agent_name": string | null,"comment_id": string | null,"created_at": string,"id": string,"invitation_id": string | null,"kind": string,"project_id": string | null,"project_title": string | null,"read_at": string | null,"team_title": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "actor_id"?: string | null,"comment_id"?: string | null,"created_at"?: string,"id"?: string,"invitation_id"?: string | null,"kind": string,"project_id": string,"project_title"?: string | null,"read_at"?: string | null,"team_title"?: string | null,"user_id": string
+                    "actor_id"?: string | null,"agent_connection_id"?: string | null,"agent_name"?: string | null,"comment_id"?: string | null,"created_at"?: string,"id"?: string,"invitation_id"?: string | null,"kind": string,"project_id"?: string | null,"project_title"?: string | null,"read_at"?: string | null,"team_title"?: string | null,"user_id": string
                   }
                   Update: {
-                    "actor_id"?: string | null,"comment_id"?: string | null,"created_at"?: string,"id"?: string,"invitation_id"?: string | null,"kind"?: string,"project_id"?: string,"project_title"?: string | null,"read_at"?: string | null,"team_title"?: string | null,"user_id"?: string
+                    "actor_id"?: string | null,"agent_connection_id"?: string | null,"agent_name"?: string | null,"comment_id"?: string | null,"created_at"?: string,"id"?: string,"invitation_id"?: string | null,"kind"?: string,"project_id"?: string | null,"project_title"?: string | null,"read_at"?: string | null,"team_title"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -276,6 +394,12 @@ isOneToOne: false
       columns: ["actor_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "notifications_agent_connection_id_fkey"
+      columns: ["agent_connection_id"]
+isOneToOne: false
+      referencedRelation: "agent_connections"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "notifications_comment_id_fkey"
@@ -311,14 +435,14 @@ isOneToOne: false
                   ]
                 },"posts": {
                   Row: {
-                    "author_id": string | null,"body": string,"created_at": string,"id": string,"images": (string)[],"milestone_id": string | null,"number": number | null,"project_id": string,"published_at": string | null,"status": Database["public"]['Enums']["post_status"],"title": string,"updated_at": string
+                    "author_id": string | null,"body": string,"created_at": string,"id": string,"images": (string)[],"milestone_id": string | null,"number": number | null,"project_id": string,"published_at": string | null,"status": Database["public"]['Enums']["post_status"],"title": string,"updated_at": string,"via_agent": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_id"?: string | null,"body"?: string,"created_at"?: string,"id"?: string,"images"?: (string)[],"milestone_id"?: string | null,"number"?: number | null,"project_id": string,"published_at"?: string | null,"status"?: Database["public"]['Enums']["post_status"],"title": string,"updated_at"?: string
+                    "author_id"?: string | null,"body"?: string,"created_at"?: string,"id"?: string,"images"?: (string)[],"milestone_id"?: string | null,"number"?: number | null,"project_id": string,"published_at"?: string | null,"status"?: Database["public"]['Enums']["post_status"],"title": string,"updated_at"?: string,"via_agent"?: string | null
                   }
                   Update: {
-                    "author_id"?: string | null,"body"?: string,"created_at"?: string,"id"?: string,"images"?: (string)[],"milestone_id"?: string | null,"number"?: number | null,"project_id"?: string,"published_at"?: string | null,"status"?: Database["public"]['Enums']["post_status"],"title"?: string,"updated_at"?: string
+                    "author_id"?: string | null,"body"?: string,"created_at"?: string,"id"?: string,"images"?: (string)[],"milestone_id"?: string | null,"number"?: number | null,"project_id"?: string,"published_at"?: string | null,"status"?: Database["public"]['Enums']["post_status"],"title"?: string,"updated_at"?: string,"via_agent"?: string | null
                   }
                   Relationships: [
                     {
@@ -550,8 +674,35 @@ isOneToOne: false
             "accept_invitation":
 { Args: { "p_invitation": string }; Returns: string
                            },
+"admin_agent_clients":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "blocked_at": string,"client_id": string,"created_at": string,"id": string,"kind": string,"logo_url": string,"name": string,"redirect_uris": (string)[],"users_count": number,"verified": boolean
+            }[]
+                           },
+"admin_agent_connections":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "actions_count": number,"client_name": string,"client_verified": boolean,"created_at": string,"expires_at": string,"id": string,"kind": string,"last_used_at": string,"name": string,"revoked_at": string,"scopes": (string)[],"user_id": string,"user_name": string,"user_role": Database["public"]['Enums']["user_role"]
+            }[]
+                           },
+"admin_agent_recent_audit":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "client_name": string,"created_at": string,"error": string,"ok": boolean,"tool": string,"user_name": string
+            }[]
+                           },
 "admin_bootstrap_emails":
 { Args: Record<PropertyKey, never>; Returns: (string)[]
+                           },
+"admin_set_agent_client":
+{ Args: { "p_blocked": boolean,"p_client": string,"p_verified": boolean }; Returns: undefined
+                           },
+"agent_allowed_scopes":
+{ Args: { "p_role": Database["public"]['Enums']["user_role"] }; Returns: (string)[]
+                           },
+"agent_expiry_cap":
+{ Args: { "p_scopes": (string)[] }; Returns: string
+                           },
+"agent_expiry_reminders":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "can_edit_project":
 { Args: { "p_project": string }; Returns: boolean
@@ -564,6 +715,9 @@ isOneToOne: false
                            },
 "compute_progress":
 { Args: { "p_project": string }; Returns: number
+                           },
+"create_agent_api_key":
+{ Args: { "p_expires_at": string,"p_key_hash": string,"p_key_prefix": string,"p_name": string,"p_scopes": (string)[] }; Returns: string
                            },
 "current_role_name":
 { Args: Record<PropertyKey, never>; Returns: Database["public"]['Enums']["user_role"]
@@ -607,6 +761,16 @@ isOneToOne: false
 "mark_notifications_read":
 { Args: { "p_id"?: string }; Returns: undefined
                            },
+"my_agent_audit":
+{ Args: { "p_connection": string }; Returns: {
+              "client_name": string,"created_at": string,"error": string,"ok": boolean,"tool": string
+            }[]
+                           },
+"my_agent_connections":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "actions_count": number,"client_logo": string,"client_name": string,"client_verified": boolean,"created_at": string,"expires_at": string,"id": string,"key_prefix": string,"kind": string,"last_used_at": string,"max_expires_at": string,"name": string,"revoked_at": string,"scopes": (string)[]
+            }[]
+                           },
 "my_email":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -619,8 +783,17 @@ isOneToOne: false
 "project_is_public":
 { Args: { "p_project": string }; Returns: boolean
                            },
+"revoke_agent_connection":
+{ Args: { "p_connection": string }; Returns: undefined
+                           },
+"revoke_all_agent_connections":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "school_year_of":
 { Args: { "p_date": string }; Returns: string
+                           },
+"set_agent_connection_expiry":
+{ Args: { "p_connection": string,"p_expires_at": string }; Returns: string
                            },
 "set_project_constraints":
 { Args: { "p_category": number,"p_character": number,"p_emotion": number,"p_platform": Database["public"]['Enums']["platform"],"p_project": string }; Returns: undefined
