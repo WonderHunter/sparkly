@@ -14,7 +14,7 @@ export type FormState = { ok?: boolean; error?: string; message?: string; fields
 const uuid = z.uuid();
 
 // ---------------------------------------------------------------------------
-// Comptes (rôles et suspension : admin ; suppression : voir deleteUser)
+// Comptes (rôles : admin ; suspension et suppression : aussi les enseignant·es, comptes étudiants)
 // ---------------------------------------------------------------------------
 export async function setUserRole(userId: string, role: "student" | "teacher" | "admin") {
   const admin = await requireAdmin();
@@ -24,14 +24,12 @@ export async function setUserRole(userId: string, role: "student" | "teacher" | 
   revalidatePath("/admin/users");
 }
 
+/** Admin : n'importe quel compte sauf le sien. Enseignant·e : uniquement des comptes étudiants (vérifié en base). */
 export async function setUserSuspended(userId: string, suspended: boolean) {
-  const admin = await requireAdmin();
-  if (!uuid.safeParse(userId).success || userId === admin.id) return;
+  const staff = await requireStaff();
+  if (!uuid.safeParse(userId).success || userId === staff.id) return;
   const supabase = await createClient();
-  await supabase
-    .from("profiles")
-    .update({ suspended_at: suspended ? new Date().toISOString() : null })
-    .eq("id", userId);
+  await supabase.rpc("set_user_suspended", { p_user: userId, p_suspended: suspended });
   revalidatePath("/admin/users");
 }
 

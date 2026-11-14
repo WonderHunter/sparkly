@@ -1,7 +1,7 @@
--- L'équipe pédagogique gère le panel Agents IA et supprime des projets.
+-- L'équipe pédagogique gère le panel Agents IA, supprime des projets et suspend des comptes étudiants.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(18);
 
 create or replace function pg_temp.login(p_user uuid) returns void language plpgsql as $$
 begin
@@ -49,6 +49,31 @@ select is((select count(*)::int from public.projects where id = '10000000-0000-4
 delete from public.projects where id = '10000000-0000-4000-a000-000000000001';
 select is((select count(*)::int from public.projects where id = '10000000-0000-4000-a000-000000000001'), 0,
   'un·e enseignant·e supprime un projet');
+
+-- ---------------------------------------------------------------------------
+-- Suspension
+-- ---------------------------------------------------------------------------
+select pg_temp.login('00000000-0000-4000-a000-000000000001');
+select lives_ok($$ select public.set_user_suspended('00000000-0000-4000-a000-000000000005', true) $$,
+  'un·e enseignant·e suspend un compte étudiant');
+select isnt((select suspended_at from public.profiles where id = '00000000-0000-4000-a000-000000000005'), null,
+  'le compte est suspendu');
+select lives_ok($$ select public.set_user_suspended('00000000-0000-4000-a000-000000000005', false) $$, 'et le réactive');
+select throws_ok($$ select public.set_user_suspended('00000000-0000-4000-a000-000000000008', true) $$, '42501', null,
+  'mais ne suspend pas un·e admin');
+
+-- Hors de la fonction, rien d'autre du profil étudiant n'est modifiable.
+update public.profiles set display_name = 'Piraté' where id = '00000000-0000-4000-a000-000000000005';
+select isnt((select display_name from public.profiles where id = '00000000-0000-4000-a000-000000000005'), 'Piraté',
+  'un·e enseignant·e ne modifie pas le profil d''un·e étudiant·e');
+
+select pg_temp.login('00000000-0000-4000-a000-000000000003');
+select throws_ok($$ select public.set_user_suspended('00000000-0000-4000-a000-000000000005', true) $$, '42501', null,
+  'un·e étudiant·e ne suspend personne');
+
+select pg_temp.login('00000000-0000-4000-a000-000000000008');
+select lives_ok($$ select public.set_user_suspended('00000000-0000-4000-a000-000000000001', true) $$,
+  'un·e admin suspend un·e enseignant·e');
 
 select * from finish();
 rollback;

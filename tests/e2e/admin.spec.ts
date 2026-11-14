@@ -118,12 +118,22 @@ test.describe("Administration", () => {
     await page.getByRole("button", { name: "Rechercher" }).click();
     await expect(page.getByRole("listitem").filter({ hasText: "Admin Démo" }).getByText("Gérer")).toHaveCount(0);
 
-    // Le compte étudiant, si : seule la suppression est proposée.
+    // Le compte étudiant, si : suspension et suppression, mais pas de changement de rôle.
     await page.getByLabel("Rechercher un compte").fill("Élève Jetable");
     await page.getByRole("button", { name: "Rechercher" }).click();
     const item = page.getByRole("listitem").filter({ hasText: "Élève Jetable" });
     await item.getByText("Gérer").click();
-    await expect(item.getByRole("button", { name: "Suspendre" })).toHaveCount(0);
+    await expect(item.getByRole("button", { name: /^Passer/ })).toHaveCount(0);
+    // Après chaque action la page se rafraîchit : on rouvre « Gérer » s'il s'est refermé.
+    const manage = async (button: string) => {
+      if (!(await item.getByRole("button", { name: button }).isVisible())) await item.getByText("Gérer").click();
+      return item.getByRole("button", { name: button });
+    };
+    await (await manage("Suspendre")).click();
+    await expect(item.getByText("Suspendu")).toBeVisible();
+    await (await manage("Réactiver")).click();
+    await expect(item.getByText("Suspendu")).toHaveCount(0);
+    await manage("Supprimer le compte");
     await item.getByLabel("Écris SUPPRIMER pour confirmer").fill("SUPPRIMER");
     await item.getByRole("button", { name: "Supprimer le compte" }).click();
     await expect(page.getByText("Compte supprimé.")).toBeVisible();

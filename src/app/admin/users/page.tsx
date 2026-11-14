@@ -42,8 +42,8 @@ export default async function AdminUsers({ searchParams }: PageProps<"/admin/use
 
       {!viewer?.isAdmin && (
         <p className="rounded-xl bg-surface-muted px-4 py-3 text-sm text-muted">
-          Tu peux supprimer des comptes étudiants. Changer un rôle, suspendre un compte ou supprimer celui d&apos;un·e enseignant·e reste
-          réservé aux administrateurs.
+          Tu peux suspendre ou supprimer des comptes étudiants. Changer un rôle, ou gérer le compte d&apos;un·e enseignant·e, reste réservé
+          aux administrateurs.
         </p>
       )}
 
@@ -68,24 +68,21 @@ export default async function AdminUsers({ searchParams }: PageProps<"/admin/use
               <details className="mt-3">
                 <summary className="cursor-pointer text-sm font-semibold text-muted hover:text-foreground">Gérer</summary>
                 <div className="mt-3 flex flex-wrap items-start gap-3">
-                  {viewer.isAdmin && (
-                    <>
-                      {(["student", "teacher", "admin"] as UserRole[])
-                        .filter((r) => r !== u.role)
-                        .map((r) => (
-                          <form key={r} action={setUserRole.bind(null, u.id, r)}>
-                            <Button type="submit" size="sm" variant="outline">
-                              Passer {ROLE_LABEL[r].toLowerCase()}
-                            </Button>
-                          </form>
-                        ))}
-                      <form action={setUserSuspended.bind(null, u.id, !u.suspended_at)}>
-                        <Button type="submit" size="sm" variant="outline">
-                          {u.suspended_at ? "Réactiver" : "Suspendre"}
-                        </Button>
-                      </form>
-                    </>
-                  )}
+                  {viewer.isAdmin &&
+                    (["student", "teacher", "admin"] as UserRole[])
+                      .filter((r) => r !== u.role)
+                      .map((r) => (
+                        <form key={r} action={setUserRole.bind(null, u.id, r)}>
+                          <Button type="submit" size="sm" variant="outline">
+                            Passer {ROLE_LABEL[r].toLowerCase()}
+                          </Button>
+                        </form>
+                      ))}
+                  <form action={setUserSuspended.bind(null, u.id, !u.suspended_at)}>
+                    <Button type="submit" size="sm" variant="outline">
+                      {u.suspended_at ? "Réactiver" : "Suspendre"}
+                    </Button>
+                  </form>
                   <ActionForm
                     action={deleteUser.bind(null, u.id)}
                     className="flex flex-wrap items-center gap-2 space-y-0"

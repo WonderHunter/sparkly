@@ -821,6 +821,9 @@ isOneToOne: false
 "set_project_constraints":
 { Args: { "p_category": number,"p_character": number,"p_emotion": number,"p_platform": Database["public"]['Enums']["platform"],"p_project": string }; Returns: undefined
                            },
+"set_user_suspended":
+{ Args: { "p_suspended": boolean,"p_user": string }; Returns: undefined
+                           },
 "title_conflicts":
 { Args: { "p_exclude"?: string,"p_title": string }; Returns: {
               "is_published": boolean,"slug": string,"title": string

@@ -1,7 +1,8 @@
 -- =============================================================================
 -- L'équipe pédagogique (enseignant·es et admins) gère aussi :
 --   - le panel Agents IA (réglages, connexions, applications, journal) ;
---   - la suppression de projets.
+--   - la suppression de projets ;
+--   - la suspension des comptes étudiants (set_user_suspended).
 -- La suppression de comptes passe par l'API Auth (clé de service) : son contrôle est
 -- fait côté serveur (un·e enseignant·e ne supprime que des comptes étudiants).
 -- =============================================================================
@@ -148,3 +149,58 @@ begin
   end if;
 end;
 $$;
+
+-- Suspension : un·e admin suspend n'importe quel compte (sauf le sien), un·e enseignant·e
+-- seulement des comptes étudiants. Le rôle reste réservé aux admins.
+create or replace function public.profiles_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is not null and not public.is_admin() then
+    if new.role is distinct from old.role then
+      raise exception 'Action réservée aux administrateurs' using errcode = '42501';
+    end if;
+    if new.suspended_at is distinct from old.suspended_at
+       and not (public.is_staff() and old.role = 'student' and old.id <> auth.uid()) then
+      raise exception 'Action réservée à l''équipe pédagogique (comptes étudiants)' using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- Fonction dédiée : la politique de mise à jour des profils reste « soi-même ou admin »,
+-- un·e enseignant·e ne peut donc changer que la suspension, rien d'autre du profil.
+create or replace function public.set_user_suspended(p_user uuid, p_suspended boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_role public.user_role;
+begin
+  if not public.is_staff() then
+    raise exception 'Réservé à l''équipe pédagogique.' using errcode = '42501';
+  end if;
+  if p_user = auth.uid() then
+    raise exception 'Impossible de suspendre son propre compte.' using errcode = '42501';
+  end if;
+  select role into v_role from public.profiles where id = p_user;
+  if not found then
+    raise exception 'Compte introuvable.' using errcode = 'P0002';
+  end if;
+  if v_role <> 'student' and not public.is_admin() then
+    raise exception 'Seul un·e admin suspend le compte d''un·e enseignant·e ou d''un·e admin.' using errcode = '42501';
+  end if;
+  update public.profiles
+  set suspended_at = case when p_suspended then coalesce(suspended_at, now()) else null end
+  where id = p_user;
+end;
+$$;
+
+revoke execute on function public.set_user_suspended(uuid, boolean) from public, anon;
+grant execute on function public.set_user_suspended(uuid, boolean) to authenticated;
