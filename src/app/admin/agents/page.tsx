@@ -5,7 +5,7 @@ import { EditorSection } from "@/components/editor/editor-section";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Field, Input } from "@/components/ui/form";
 import { Badge } from "@/components/ui/misc";
-import { requireAdmin } from "@/lib/auth";
+import { requireStaff } from "@/lib/auth";
 import { AGENT_SCOPES, DISABLEABLE_SCOPES, isAgentScope } from "@/lib/agents/scopes";
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABEL } from "@/lib/types";
@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Agents IA · Administration" };
 const DAY = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", timeZone: "Europe/Paris" });
 
 export default async function AdminAgentsPage() {
-  await requireAdmin();
+  await requireStaff();
   const supabase = await createClient();
   const [{ data: settings }, { data: connections }, { data: clients }, { data: audit }] = await Promise.all([
     supabase.from("app_settings").select("agents_enabled, agent_max_days, agent_disabled_scopes").single(),

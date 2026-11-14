@@ -14,7 +14,7 @@ export type FormState = { ok?: boolean; error?: string; message?: string; fields
 const uuid = z.uuid();
 
 // ---------------------------------------------------------------------------
-// Comptes (admin uniquement)
+// Comptes (rôles et suspension : admin ; suppression : voir deleteUser)
 // ---------------------------------------------------------------------------
 export async function setUserRole(userId: string, role: "student" | "teacher" | "admin") {
   const admin = await requireAdmin();
@@ -35,12 +35,20 @@ export async function setUserSuspended(userId: string, suspended: boolean) {
   revalidatePath("/admin/users");
 }
 
-/** Supprime définitivement un compte (Auth + profil + contenus en cascade). */
+/**
+ * Supprime définitivement un compte (Auth + profil + contenus en cascade).
+ * Admin : n'importe quel compte sauf le sien. Enseignant·e : uniquement des comptes étudiants.
+ */
 export async function deleteUser(userId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const staff = await requireStaff();
   if (!uuid.safeParse(userId).success) return { error: "Compte invalide." };
-  if (userId === admin.id) return { error: "Tu ne peux pas supprimer ton propre compte." };
+  if (userId === staff.id) return { error: "Tu ne peux pas supprimer ton propre compte." };
   if (formData.get("confirm") !== "SUPPRIMER") return { error: "Écris SUPPRIMER pour confirmer." };
+  if (!staff.isAdmin) {
+    const { data: target } = await createAdminClient().from("profiles").select("role").eq("id", userId).maybeSingle();
+    if (!target) return { error: "Compte introuvable." };
+    if (target.role !== "student") return { error: "Seul un·e admin peut supprimer le compte d'un·e enseignant·e ou d'un·e admin." };
+  }
 
   const { error } = await createAdminClient().auth.admin.deleteUser(userId);
   if (error) return { error: "Suppression impossible." };
@@ -73,7 +81,7 @@ export async function forcePublishProject(projectId: string) {
 }
 
 export async function adminDeleteProject(projectId: string) {
-  await requireAdmin();
+  await requireStaff();
   if (!uuid.safeParse(projectId).success) return;
   const supabase = await createClient();
   await supabase.from("projects").delete().eq("id", projectId);
@@ -234,14 +242,14 @@ export async function updateFundingSettings(_prev: FormState, formData: FormData
 }
 
 // ---------------------------------------------------------------------------
-// Agents IA (admin)
+// Agents IA (équipe pédagogique)
 // ---------------------------------------------------------------------------
 const agentSettingsSchema = z.object({
   maxDays: z.coerce.number().int("Nombre de jours entier.").min(1, "Au moins 1 jour.").max(366, "366 jours au plus."),
 });
 
 export async function updateAgentSettings(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireStaff();
   const parsed = agentSettingsSchema.safeParse({ maxDays: formData.get("maxDays") ?? "" });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const supabase = await createClient();
@@ -251,10 +259,12 @@ export async function updateAgentSettings(_prev: FormState, formData: FormData):
   const disabled = DISABLEABLE_SCOPES.filter((s) =>
     AGENT_SCOPES[s].available ? !enabled.includes(s) : (current?.agent_disabled_scopes ?? []).includes(s),
   );
-  const { error } = await supabase
-    .from("app_settings")
-    .update({ agents_enabled: formData.get("agentsEnabled") === "on", agent_max_days: parsed.data.maxDays, agent_disabled_scopes: disabled })
-    .eq("id", true);
+  // Fonction dédiée : la mise à jour directe de app_settings reste réservée aux admins.
+  const { error } = await supabase.rpc("set_agent_settings", {
+    p_enabled: formData.get("agentsEnabled") === "on",
+    p_max_days: parsed.data.maxDays,
+    p_disabled_scopes: disabled,
+  });
   if (error) return { error: "Enregistrement impossible." };
   revalidatePath("/admin/agents");
   revalidatePath("/settings/agents");
@@ -262,7 +272,7 @@ export async function updateAgentSettings(_prev: FormState, formData: FormData):
 }
 
 export async function adminRevokeAgentConnection(connectionId: string) {
-  await requireAdmin();
+  await requireStaff();
   if (!uuid.safeParse(connectionId).success) return;
   const supabase = await createClient();
   await supabase.rpc("revoke_agent_connection", { p_connection: connectionId });
@@ -270,7 +280,7 @@ export async function adminRevokeAgentConnection(connectionId: string) {
 }
 
 export async function adminSetAgentClient(clientId: string, verified: boolean, blocked: boolean) {
-  await requireAdmin();
+  await requireStaff();
   if (!uuid.safeParse(clientId).success) return;
   const supabase = await createClient();
   await supabase.rpc("admin_set_agent_client", { p_client: clientId, p_verified: verified, p_blocked: blocked });

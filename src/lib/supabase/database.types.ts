@@ -815,6 +815,9 @@ isOneToOne: false
 "set_agent_connection_expiry":
 { Args: { "p_connection": string,"p_expires_at": string }; Returns: string
                            },
+"set_agent_settings":
+{ Args: { "p_disabled_scopes": (string)[],"p_enabled": boolean,"p_max_days": number }; Returns: undefined
+                           },
 "set_project_constraints":
 { Args: { "p_category": number,"p_character": number,"p_emotion": number,"p_platform": Database["public"]['Enums']["platform"],"p_project": string }; Returns: undefined
                            },

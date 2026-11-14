@@ -37,12 +37,12 @@ export function rolesForScope(scope: AgentScope): UserRole[] {
   return (Object.keys(BY_ROLE) as UserRole[]).filter((role) => BY_ROLE[role].includes(scope));
 }
 
-/** Permissions proposées à la personne : autorisées pour son rôle, disponibles et non désactivées par l'admin. */
+/** Permissions proposées à la personne : autorisées pour son rôle, disponibles et non désactivées par l'équipe pédagogique. */
 export function grantableScopes(role: UserRole, disabled: readonly string[] = []): AgentScope[] {
   return BY_ROLE[role].filter((s) => AGENT_SCOPES[s].available && !disabled.includes(s));
 }
 
-/** Permissions que l'admin peut désactiver (la lecture reste toujours possible). */
+/** Permissions que l'équipe pédagogique peut désactiver (la lecture reste toujours possible). */
 export const DISABLEABLE_SCOPES = ["projet", "devlog", "commentaires", "contraintes", "financement", "moderation"] as const satisfies readonly AgentScope[];
 
 export function isAgentScope(value: string): value is AgentScope {
