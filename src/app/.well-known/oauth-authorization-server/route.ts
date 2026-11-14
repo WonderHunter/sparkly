@@ -14,7 +14,8 @@ export async function GET() {
       response_types_supported: ["code"],
       grant_types_supported: ["authorization_code", "refresh_token"],
       code_challenge_methods_supported: ["S256"],
-      token_endpoint_auth_methods_supported: ["none"],
+      // Public (PKCE seul) en priorité ; secret accepté pour les applications qui s'enregistrent ainsi.
+      token_endpoint_auth_methods_supported: ["none", "client_secret_post", "client_secret_basic"],
       revocation_endpoint_auth_methods_supported: ["none"],
       // Documents de métadonnées de client (voie recommandée par la spec MCP).
       client_id_metadata_document_supported: true,

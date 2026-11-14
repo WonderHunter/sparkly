@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { registerClient, registrationSchema } from "@/lib/agents/clients";
+import { ClientError, registerClient, registrationSchema } from "@/lib/agents/clients";
 import { CORS_HEADERS } from "@/lib/agents/config";
 
 /** Enregistrement dynamique de client (RFC 7591), en repli des documents de métadonnées. */
@@ -13,24 +13,32 @@ export async function POST(request: NextRequest) {
     );
   }
   try {
-    const client = await registerClient(parsed.data);
+    const { client, secret } = await registerClient(parsed.data);
     return NextResponse.json(
       {
         client_id: client.clientId,
         client_id_issued_at: Math.floor(Date.now() / 1000),
+        ...(secret ? { client_secret: secret, client_secret_expires_at: 0 } : {}),
         client_name: client.name,
         redirect_uris: client.redirectUris,
-        token_endpoint_auth_method: "none",
+        token_endpoint_auth_method: client.authMethod,
         grant_types: ["authorization_code", "refresh_token"],
         response_types: ["code"],
       },
-      { status: 201, headers: CORS_HEADERS },
+      { status: 201, headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },
     );
   } catch (error) {
-    const [code, description] = (error as Error).message.split(": ");
+    if (error instanceof ClientError) {
+      return NextResponse.json(
+        { error: error.code, error_description: error.message },
+        { status: error.code === "temporarily_unavailable" ? 429 : 400, headers: CORS_HEADERS },
+      );
+    }
+    // Erreur technique (base injoignable…) : journalisée, jamais détaillée au client.
+    console.error("Enregistrement d'application impossible :", error);
     return NextResponse.json(
-      { error: description ? code : "invalid_client_metadata", error_description: description ?? code },
-      { status: code === "temporarily_unavailable" ? 429 : 400, headers: CORS_HEADERS },
+      { error: "server_error", error_description: "Erreur technique côté Sparkly, réessaie dans quelques minutes." },
+      { status: 500, headers: CORS_HEADERS },
     );
   }
 }

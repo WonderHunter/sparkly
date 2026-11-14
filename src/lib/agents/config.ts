@@ -21,7 +21,8 @@ export const SUPPORTED_SCOPES = Object.keys(AGENT_SCOPES);
 /** En-têtes CORS des routes publiques (les clients appellent parfois depuis un navigateur). */
 export const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Authorization, Content-Type, MCP-Protocol-Version",
-  "Access-Control-Expose-Headers": "WWW-Authenticate",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, MCP-Protocol-Version, Mcp-Session-Id, Last-Event-ID",
+  "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id, MCP-Protocol-Version",
+  "Access-Control-Max-Age": "86400",
 };
