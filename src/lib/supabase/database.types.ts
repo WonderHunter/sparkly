@@ -51,14 +51,14 @@ isOneToOne: false
                   ]
                 },"agent_clients": {
                   Row: {
-                    "blocked_at": string | null,"client_id": string,"created_at": string,"id": string,"kind": string,"logo_url": string | null,"metadata_fetched_at": string | null,"name": string,"redirect_uris": (string)[],"verified": boolean
+                    "blocked_at": string | null,"client_id": string,"created_at": string,"id": string,"kind": string,"logo_url": string | null,"metadata_fetched_at": string | null,"name": string,"redirect_uris": (string)[],"secret_hash": string | null,"token_endpoint_auth_method": string,"verified": boolean
                   }
                   ComputedFields: never
                   Insert: {
-                    "blocked_at"?: string | null,"client_id": string,"created_at"?: string,"id"?: string,"kind": string,"logo_url"?: string | null,"metadata_fetched_at"?: string | null,"name": string,"redirect_uris": (string)[],"verified"?: boolean
+                    "blocked_at"?: string | null,"client_id": string,"created_at"?: string,"id"?: string,"kind": string,"logo_url"?: string | null,"metadata_fetched_at"?: string | null,"name": string,"redirect_uris": (string)[],"secret_hash"?: string | null,"token_endpoint_auth_method"?: string,"verified"?: boolean
                   }
                   Update: {
-                    "blocked_at"?: string | null,"client_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"logo_url"?: string | null,"metadata_fetched_at"?: string | null,"name"?: string,"redirect_uris"?: (string)[],"verified"?: boolean
+                    "blocked_at"?: string | null,"client_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"logo_url"?: string | null,"metadata_fetched_at"?: string | null,"name"?: string,"redirect_uris"?: (string)[],"secret_hash"?: string | null,"token_endpoint_auth_method"?: string,"verified"?: boolean
                   }
                   Relationships: [
                     

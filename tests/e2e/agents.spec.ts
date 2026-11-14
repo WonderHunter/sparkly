@@ -187,4 +187,53 @@ test.describe("agents IA", () => {
     await expect(page.getByRole("heading", { name: "Actions à confirmer" })).toBeVisible();
     await expect(page.getByText("financer", { exact: true })).toBeVisible();
   });
+
+  test("une application enregistrée avec un secret se connecte (client_secret_basic), CORS compris", async ({ page, request, baseURL }) => {
+    // CORS : un client MCP dans un navigateur doit pouvoir lire l'en-tête qui indique où s'authentifier.
+    const preflight = await request.fetch("/api/mcp", { method: "OPTIONS" });
+    expect(preflight.status()).toBe(204);
+    expect(preflight.headers()["access-control-allow-headers"]).toContain("Authorization");
+    const anonymous = await mcp(request, "", "tools/list");
+    expect(anonymous.headers["access-control-allow-origin"]).toBe("*");
+    expect(anonymous.headers["access-control-expose-headers"]).toContain("WWW-Authenticate");
+
+    const registration = await request.post("/oauth/register", {
+      data: { client_name: "Agent confidentiel", redirect_uris: [REDIRECT], token_endpoint_auth_method: "client_secret_basic" },
+    });
+    expect(registration.status()).toBe(201);
+    const client = await registration.json();
+    expect(client.token_endpoint_auth_method).toBe("client_secret_basic");
+    expect(client.client_secret).toMatch(/^scs_/);
+
+    const verifier = randomBytes(32).toString("base64url");
+    const challenge = createHash("sha256").update(verifier).digest("base64url");
+    const resource = `${baseURL}/api/mcp`;
+    await login(page, ALICE, `/oauth/authorize?${new URLSearchParams({
+      response_type: "code", client_id: client.client_id, redirect_uri: REDIRECT, code_challenge: challenge, code_challenge_method: "S256", state: "s", resource,
+    })}`);
+    await page.route(`${REDIRECT}**`, (route) => route.fulfill({ status: 200, body: "ok" }));
+    const callback = page.waitForRequest((req) => req.url().startsWith(REDIRECT));
+    await page.getByRole("button", { name: "Autoriser Agent confidentiel" }).click();
+    const code = new URL((await callback).url()).searchParams.get("code")!;
+
+    const exchange = (secret: string) =>
+      request.post("/oauth/token", {
+        headers: { Authorization: `Basic ${Buffer.from(`${client.client_id}:${secret}`).toString("base64")}` },
+        form: { grant_type: "authorization_code", code, redirect_uri: REDIRECT, code_verifier: verifier, resource },
+      });
+    const wrong = await exchange("scs_faux");
+    expect(wrong.status()).toBe(401);
+    expect((await wrong.json()).error).toBe("invalid_client");
+    const tokens = await (await exchange(client.client_secret)).json();
+    expect(tokens.access_token).toMatch(/^spt_/);
+    expect((await initialize(request, tokens.access_token)).status).toBe(200);
+  });
+
+  test("l'enregistrement refuse proprement une méthode inconnue, sans détail technique", async ({ request }) => {
+    const res = await request.post("/oauth/register", {
+      data: { client_name: "Bizarre", redirect_uris: [REDIRECT], token_endpoint_auth_method: "private_key_jwt" },
+    });
+    expect(res.status()).toBe(400);
+    expect((await res.json()).error).toBe("invalid_client_metadata");
+  });
 });
