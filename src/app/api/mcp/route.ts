@@ -2,6 +2,7 @@ import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { runTool, TOOLS } from "@/lib/agents/mcp-tools";
 import type { AgentIdentity } from "@/lib/agents/tokens";
 import { verifyBearer } from "@/lib/agents/tokens";
+import { CORS_HEADERS } from "@/lib/agents/config";
 
 /** Serveur MCP de Sparkly : chaque outil agit « en tant que » la personne qui a connecté l'agent. */
 const handler = createMcpHandler(
@@ -24,11 +25,22 @@ const handler = createMcpHandler(
   { serverInfo: { name: "sparkly", version: process.env.npm_package_version ?? "1.0.0" } },
 );
 
+/** Requêtes dont la vérification du jeton a échoué pour une raison technique (base injoignable…). */
+const outages = new WeakSet<Request>();
+
 const authHandler = withMcpAuth(
   handler,
   async (req, bearer) => {
     if (!bearer) return undefined;
-    const identity = await verifyBearer(bearer);
+    let identity: AgentIdentity | null;
+    try {
+      identity = await verifyBearer(bearer);
+    } catch (error) {
+      // Sans ça, mcp-handler répondrait « jeton invalide » (401) et masquerait la panne.
+      console.error("MCP : vérification du jeton impossible :", error);
+      outages.add(req);
+      return undefined;
+    }
     if (!identity) return undefined;
     return {
       token: bearer,
@@ -40,4 +52,22 @@ const authHandler = withMcpAuth(
   { required: true, resourceMetadataPath: "/.well-known/oauth-protected-resource/api/mcp" },
 );
 
-export { authHandler as GET, authHandler as POST, authHandler as DELETE };
+/** CORS sur toutes les réponses (clients MCP dans un navigateur) et 503 explicite en cas de panne. */
+async function route(req: Request) {
+  const response = await authHandler(req);
+  if (outages.has(req)) {
+    return Response.json(
+      { error: "temporarily_unavailable", error_description: "Sparkly ne peut pas vérifier les accès pour l'instant. Réessaie dans quelques minutes." },
+      { status: 503, headers: { ...CORS_HEADERS, "Retry-After": "60" } },
+    );
+  }
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(CORS_HEADERS)) headers.set(key, value);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+export function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
+export { route as GET, route as POST, route as DELETE };

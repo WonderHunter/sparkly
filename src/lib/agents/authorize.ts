@@ -1,5 +1,5 @@
 import "server-only";
-import { type AgentClient, redirectUriMatches, resolveClient } from "./clients";
+import { type AgentClient, ClientError, redirectUriMatches, resolveClient } from "./clients";
 import { agentUrls } from "./config";
 
 export interface AuthorizeRequest {
@@ -28,7 +28,9 @@ export async function parseAuthorizeRequest(
   try {
     client = await resolveClient(clientId);
   } catch (error) {
-    return { ok: false, fatal: true, message: `Application non reconnue : ${(error as Error).message}` };
+    if (error instanceof ClientError) return { ok: false, fatal: true, message: `Application non reconnue : ${error.message}` };
+    console.error("Autorisation : application impossible à vérifier :", error);
+    return { ok: false, fatal: true, message: "Sparkly rencontre un problème technique et ne peut pas vérifier cette application. Réessaie dans quelques minutes." };
   }
   if (!redirectUriMatches(client.redirectUris, redirectUri)) {
     return { ok: false, fatal: true, message: "L'adresse de retour ne correspond pas à cette application." };
