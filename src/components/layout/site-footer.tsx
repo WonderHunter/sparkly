@@ -46,6 +46,11 @@ export function SiteFooter() {
                 Créer le projet de mon groupe
               </Link>
             </li>
+            <li>
+              <Link href="/docs/agents" className="hover:text-foreground">
+                Guide des agents IA
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

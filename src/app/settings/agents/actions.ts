@@ -32,8 +32,11 @@ export async function createApiKey(_prev: CreateKeyState, formData: FormData): P
   const grantable = grantableScopes(viewer.profile.role, settings?.agent_disabled_scopes ?? []);
   const scopes = formData.getAll("scopes").filter((s): s is string => typeof s === "string").filter(isAgentScope).filter((s) => grantable.includes(s));
   if (scopes.length === 0) return { error: "Choisis au moins une permission." };
-  const expiresAt = endOfDayParis(String(formData.get("expires") ?? ""));
-  if (!expiresAt) return { error: "Choisis une date d'expiration." };
+  const chosen = endOfDayParis(String(formData.get("expires") ?? ""));
+  if (!chosen) return { error: "Choisis une date d'expiration." };
+  // Le dernier jour proposé finit à 23 h 59 : on le ramène au plafond exact (30 jours avec financement ou modération).
+  const { data: cap } = await supabase.rpc("agent_expiry_cap", { p_scopes: scopes });
+  const expiresAt = cap && chosen > new Date(cap) ? new Date(cap) : chosen;
 
   const secret = randomToken("spk");
   const { error } = await supabase.rpc("create_agent_api_key", {
@@ -53,9 +56,13 @@ export type ExpiryState = { ok?: boolean; error?: string };
 /** Raccourcit ou prolonge une connexion, dans la limite du plafond (vérifié en base). */
 export async function setConnectionExpiry(connectionId: string, _prev: ExpiryState, formData: FormData): Promise<ExpiryState> {
   await requireViewer("/settings/agents");
-  const expiresAt = endOfDayParis(String(formData.get("expires") ?? ""));
-  if (!expiresAt) return { error: "Date invalide." };
+  const chosen = endOfDayParis(String(formData.get("expires") ?? ""));
+  if (!chosen) return { error: "Date invalide." };
   const supabase = await createClient();
+  // Même règle qu'à la création : le dernier jour proposé est ramené au plafond exact.
+  const { data: connections } = await supabase.rpc("my_agent_connections");
+  const cap = connections?.find((c) => c.id === connectionId)?.max_expires_at;
+  const expiresAt = cap && chosen > new Date(cap) ? new Date(cap) : chosen;
   const { error } = await supabase.rpc("set_agent_connection_expiry", { p_connection: connectionId, p_expires_at: expiresAt.toISOString() });
   if (error) return { error: error.message };
   revalidatePath("/settings/agents");
