@@ -200,3 +200,104 @@ describe("outils d'écriture (phase 2)", () => {
     expect(await runTool(tool("moi"), limited, {}, null)).toHaveProperty("result");
   });
 });
+
+describe("outils de l'équipe pédagogique (phases 3 et 4)", () => {
+  const PROF = "00000000-0000-4000-a000-000000000001";
+  const tool = (name: string) => TOOLS.find((t) => t.name === name)!;
+  const teacherScopes = ["lecture", "commentaires", "contraintes", "financement", "moderation"] as ("lecture" | "commentaires" | "contraintes" | "financement" | "moderation")[];
+  let prof: { connectionId: string; userId: string; scopes: typeof teacherScopes; clientName: string };
+  type Recap = { result: { confirmation_requise: true; recapitulatif: string; code_de_confirmation: string } };
+
+  beforeAll(async () => {
+    const [c] = await sql<{ id: string }[]>`
+      insert into public.agent_connections (user_id, kind, name, scopes, key_prefix, expires_at)
+      values (${PROF}, 'api_key', 'Prof intégration', ${teacherScopes}, 'spk_profint', now() + interval '10 days') returning id`;
+    connections.push(c.id);
+    prof = { connectionId: c.id, userId: PROF, scopes: teacherScopes, clientName: "Agent prof" };
+  });
+
+  afterAll(async () => {
+    await sql`delete from public.investments where investor_id = ${PROF} and project_id = (select id from public.projects where slug = 'table-tempete')`;
+    await sql`update public.projects set status = 'draft' where slug = 'rythme-hall'`;
+    await sql`update public.projects set status = 'published' where slug = 'table-tempete'`;
+    await sql`delete from public.reports where reason = 'Signalement intégration staff'`;
+  });
+
+  it("finance en deux temps : récapitulatif sans effet, puis code à usage unique et paramètres identiques", async () => {
+    const params = { slug: "table-tempete", montant: 1234, mot: "Bravo pour la tempête !" };
+    const recap = (await runTool(tool("financer"), prof, params, null)) as Recap;
+    expect(recap.result.confirmation_requise).toBe(true);
+    expect(recap.result.recapitulatif).toMatch(/Financer « Table Tempête » de 1\s234\s€/);
+    expect(recap.result.recapitulatif).toContain("aujourd'hui : 0/10");
+    const code = recap.result.code_de_confirmation;
+    const before = await sql`select count(*)::int as n from public.investments where investor_id = ${PROF} and amount = 1234`;
+    expect(before[0].n).toBe(0);
+
+    // Le code ne vaut que pour ces paramètres exacts.
+    expect(await runTool(tool("financer"), prof, { ...params, montant: 99999, confirmation: code }, null)).toHaveProperty("error");
+    const done = (await runTool(tool("financer"), prof, { ...params, confirmation: code }, null)) as { result: { financement_id: string; mot: string } };
+    expect(done.result.mot).toBe("publié dans les commentaires");
+    const [comment] = await sql`select body, via_agent from public.comments where investment_id = ${done.result.financement_id}`;
+    expect(comment).toMatchObject({ body: "Bravo pour la tempête !", via_agent: "Agent prof" });
+
+    // Déjà utilisé : refusé.
+    expect(await runTool(tool("financer"), prof, { ...params, confirmation: code }, null)).toHaveProperty("error");
+
+    // Retrait, toujours en deux temps.
+    const withdraw = (await runTool(tool("retirer_financement"), prof, { financement_id: done.result.financement_id }, null)) as Recap;
+    expect(withdraw.result.recapitulatif).toMatch(/Retirer ton financement de 1\s234\s€/);
+    await runTool(tool("retirer_financement"), prof, { financement_id: done.result.financement_id, confirmation: withdraw.result.code_de_confirmation }, null);
+    const after = await sql`select count(*)::int as n from public.investments where id = ${done.result.financement_id}`;
+    expect(after[0].n).toBe(0);
+  });
+
+  it("limite les financements via un agent à 10 par jour", async () => {
+    await sql`
+      insert into public.agent_audit (connection_id, user_id, tool, ok)
+      select ${prof.connectionId}, ${PROF}, 'financer', true from generate_series(1, 10)`;
+    expect(await runTool(tool("financer"), prof, { slug: "table-tempete", montant: 10 }, null)).toEqual({
+      error: "Limite atteinte : 10 financements par jour via un agent (création, modification et retrait compris). Tu peux continuer directement sur Sparkly.",
+    });
+    await sql`delete from public.agent_audit where connection_id = ${prof.connectionId} and tool = 'financer'`;
+  });
+
+  it("refuse le financement à un compte qui n'est pas enseignant", async () => {
+    const student = { connectionId: (await connection()).id, userId: ALICE, scopes: ["financement" as const], clientName: "Intrus" };
+    expect(await runTool(tool("financer"), student, { slug: "table-tempete", montant: 10 }, null)).toEqual({
+      error: "Seul·es les enseignant·es peuvent financer un projet.",
+    });
+  });
+
+  it("fixe les contraintes d'un projet par identifiants", async () => {
+    const ok = (await runTool(tool("fixer_contraintes"), prof, { slug: "table-tempete", plateforme: "tv" }, null)) as { result: { contraintes: { plateforme: string } } };
+    expect(ok.result.contraintes.plateforme).toBe("tv");
+    expect(await runTool(tool("fixer_contraintes"), prof, { slug: "table-tempete", type_de_jeu: "inexistant" }, null)).toEqual({
+      error: "Type de jeu inconnu : « inexistant » (voir lister_contraintes).",
+    });
+    await sql`update public.projects set platform = 'cocktail' where slug = 'table-tempete'`;
+  });
+
+  it("modère : signalements, masquer et rétablir un projet, publier un brouillon, avec confirmation", async () => {
+    await sql`insert into public.reports (target_type, target_id, reason) select 'project', id, 'Signalement intégration staff' from public.projects where slug = 'table-tempete'`;
+    const reports = (await runTool(tool("voir_signalements"), prof, {}, null)) as { result: { signalements: { raison: string; projet: string }[] } };
+    expect(reports.result.signalements.find((r) => r.raison === "Signalement intégration staff")?.projet).toBe("table-tempete");
+
+    const hide = (await runTool(tool("masquer"), prof, { type: "projet", slug: "table-tempete" }, null)) as Recap;
+    expect(hide.result.recapitulatif).toContain("Masquer le projet « Table Tempête »");
+    await runTool(tool("masquer"), prof, { type: "projet", slug: "table-tempete", confirmation: hide.result.code_de_confirmation }, null);
+    expect((await sql`select status from public.projects where slug = 'table-tempete'`)[0].status).toBe("hidden");
+
+    const restore = (await runTool(tool("retablir"), prof, { type: "projet", slug: "table-tempete" }, null)) as Recap;
+    await runTool(tool("retablir"), prof, { type: "projet", slug: "table-tempete", confirmation: restore.result.code_de_confirmation }, null);
+    expect((await sql`select status from public.projects where slug = 'table-tempete'`)[0].status).toBe("draft");
+
+    const publish = (await runTool(tool("publier_brouillon"), prof, { slug: "rythme-hall" }, null)) as Recap;
+    await runTool(tool("publier_brouillon"), prof, { slug: "rythme-hall", confirmation: publish.result.code_de_confirmation }, null);
+    expect((await sql`select status from public.projects where slug = 'rythme-hall'`)[0].status).toBe("published");
+  });
+
+  it("refuse la modération à un compte étudiant, même avec la permission", async () => {
+    const student = { connectionId: (await connection()).id, userId: ALICE, scopes: ["moderation" as const], clientName: "Intrus" };
+    expect(await runTool(tool("voir_signalements"), student, {}, null)).toEqual({ error: "Réservé à l'équipe pédagogique." });
+  });
+});

@@ -35,7 +35,8 @@ describe("jetons et PKCE", () => {
 describe("permissions des agents", () => {
   it("propose les permissions disponibles pour le rôle", () => {
     expect(grantableScopes("student")).toEqual(["lecture", "projet", "devlog", "commentaires"]);
-    expect(grantableScopes("teacher")).toEqual(["lecture", "commentaires"]);
+    expect(grantableScopes("teacher")).toEqual(["lecture", "commentaires", "contraintes", "financement", "moderation"]);
+    expect(grantableScopes("admin")).toEqual(["lecture", "commentaires", "contraintes", "moderation"]);
   });
 
   it("retire celles que l'admin a désactivées, jamais la lecture", () => {
@@ -45,7 +46,8 @@ describe("permissions des agents", () => {
   it("lit le paramètre scope sans jamais dépasser le rôle", () => {
     expect(parseScopeParam("lecture moderation", "student")).toEqual(["lecture"]);
     expect(parseScopeParam("lecture devlog", "student")).toEqual(["lecture", "devlog"]);
-    expect(parseScopeParam("devlog", "teacher")).toEqual(["lecture", "commentaires"]);
+    expect(parseScopeParam("devlog", "teacher")).toEqual(["lecture", "commentaires", "contraintes", "financement", "moderation"]);
+    expect(parseScopeParam("lecture financement", "admin")).toEqual(["lecture"]);
     expect(parseScopeParam(null, "student", ["devlog"])).toEqual(["lecture", "projet", "commentaires"]);
   });
 });

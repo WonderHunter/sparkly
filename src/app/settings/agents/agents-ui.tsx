@@ -1,32 +1,13 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import { Check, Copy, KeyRound, Plus, TriangleAlert } from "lucide-react";
+import { KeyRound, Plus, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Field, FormMessage, Input } from "@/components/ui/form";
 import { submitKeepingValues } from "@/lib/keep-form-values";
 import { cn } from "@/lib/utils";
 import { createApiKey, setConnectionExpiry, type CreateKeyState, type ExpiryState } from "./actions";
-
-/** Bouton « copier » avec retour visuel. */
-export function CopyButton({ value, label = "Copier" }: { value: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <Button
-      type="button"
-      size="sm"
-      variant="outline"
-      onClick={async () => {
-        await navigator.clipboard.writeText(value);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
-      {copied ? "Copié" : label}
-    </Button>
-  );
-}
 
 /** « Nouvelle clé » : modal de création ; le secret s'affiche une seule fois. */
 export function NewKeyDialog({
@@ -104,7 +85,7 @@ export function NewKeyDialog({
                   ))}
                 </div>
               </fieldset>
-              <Field label="Expire le" htmlFor="key-expires" hint={`Au plus tard le ${new Date(`${maxDate}T12:00:00Z`).toLocaleDateString("fr-FR")} : une clé n'est jamais éternelle.`}>
+              <Field label="Expire le" htmlFor="key-expires" hint={`Au plus tard le ${new Date(`${maxDate}T12:00:00Z`).toLocaleDateString("fr-FR")} : une clé n'est jamais éternelle.${scopes.some((sc) => sc.value === "financement" || sc.value === "moderation") ? " Avec Financer ou Modérer, 30 jours au plus." : ""}`}>
                 <Input id="key-expires" name="expires" type="date" min={minDate} max={maxDate} defaultValue={defaultDate} required />
               </Field>
               {state.error && <FormMessage>{state.error}</FormMessage>}

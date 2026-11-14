@@ -95,6 +95,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"agent_confirmations": {
+                  Row: {
+                    "connection_id": string,"created_at": string,"expires_at": string,"hash": string,"payload_hash": string,"summary": string,"tool": string,"used_at": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "connection_id": string,"created_at"?: string,"expires_at": string,"hash": string,"payload_hash": string,"summary": string,"tool": string,"used_at"?: string | null
+                  }
+                  Update: {
+                    "connection_id"?: string,"created_at"?: string,"expires_at"?: string,"hash"?: string,"payload_hash"?: string,"summary"?: string,"tool"?: string,"used_at"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_confirmations_connection_id_fkey"
+      columns: ["connection_id"]
+isOneToOne: false
+      referencedRelation: "agent_connections"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"agent_connections": {
                   Row: {
                     "client_id": string | null,"created_at": string,"expires_at": string,"id": string,"key_prefix": string | null,"kind": string,"last_used_at": string | null,"name": string,"revoked_at": string | null,"scopes": (string)[],"user_id": string
