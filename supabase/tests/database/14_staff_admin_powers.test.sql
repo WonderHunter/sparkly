@@ -1,7 +1,7 @@
 -- L'équipe pédagogique gère le panel Agents IA, supprime des projets et suspend des comptes étudiants.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(18);
+select plan(20);
 
 create or replace function pg_temp.login(p_user uuid) returns void language plpgsql as $$
 begin
@@ -74,6 +74,13 @@ select throws_ok($$ select public.set_user_suspended('00000000-0000-4000-a000-00
 select pg_temp.login('00000000-0000-4000-a000-000000000008');
 select lives_ok($$ select public.set_user_suspended('00000000-0000-4000-a000-000000000001', true) $$,
   'un·e admin suspend un·e enseignant·e');
+
+-- Un·e enseignant·e suspendu·e perd ces pouvoirs.
+select pg_temp.login('00000000-0000-4000-a000-000000000001');
+select throws_ok($$ select public.set_user_suspended('00000000-0000-4000-a000-000000000005', true) $$, '42501', null,
+  'un·e enseignant·e suspendu·e ne suspend plus personne');
+select throws_ok($$ select public.set_agent_settings(true, 30, '{}') $$, '42501', null,
+  'ni ne modifie les réglages des agents');
 
 select * from finish();
 rollback;

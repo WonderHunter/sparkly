@@ -1,5 +1,5 @@
 -- =============================================================================
--- L'équipe pédagogique (enseignant·es et admins) gère aussi :
+-- L'équipe pédagogique (enseignant·es et admins, comptes non suspendus) gère aussi :
 --   - le panel Agents IA (réglages, connexions, applications, journal) ;
 --   - la suppression de projets ;
 --   - la suspension des comptes étudiants (set_user_suspended).
@@ -7,10 +7,10 @@
 -- fait côté serveur (un·e enseignant·e ne supprime que des comptes étudiants).
 -- =============================================================================
 
--- Projets : suppression par l'équipe pédagogique (plus seulement les admins).
+-- Projets : suppression par l'équipe pédagogique (plus seulement les admins). Un compte suspendu ne supprime rien.
 drop policy "projets: suppression" on public.projects;
 create policy "projets: suppression" on public.projects for delete
-  using ((public.is_owner(id) and public.is_active_user()) or public.is_staff());
+  using ((public.is_owner(id) or public.is_staff()) and public.is_active_user());
 
 -- Réglages des agents : passent par une fonction, car la politique de mise à jour de
 -- app_settings reste réservée aux admins (budget, dates, domaines…).
@@ -21,7 +21,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not public.is_staff() then
+  if not (public.is_staff() and public.is_active_user()) then
     raise exception 'Réservé à l''équipe pédagogique.' using errcode = '42501';
   end if;
   if p_max_days is null or p_max_days < 1 or p_max_days > 366 then
@@ -57,7 +57,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not public.is_staff() then
+  if not (public.is_staff() and public.is_active_user()) then
     raise exception 'Réservé à l''équipe pédagogique.' using errcode = '42501';
   end if;
   return query
@@ -84,7 +84,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not public.is_staff() then
+  if not (public.is_staff() and public.is_active_user()) then
     raise exception 'Réservé à l''équipe pédagogique.' using errcode = '42501';
   end if;
   return query
@@ -104,7 +104,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not public.is_staff() then
+  if not (public.is_staff() and public.is_active_user()) then
     raise exception 'Réservé à l''équipe pédagogique.' using errcode = '42501';
   end if;
   return query
@@ -123,7 +123,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not public.is_staff() then
+  if not (public.is_staff() and public.is_active_user()) then
     raise exception 'Réservé à l''équipe pédagogique.' using errcode = '42501';
   end if;
   update public.agent_clients
@@ -143,7 +143,7 @@ as $$
 begin
   update public.agent_connections
   set revoked_at = now()
-  where id = p_connection and revoked_at is null and (user_id = auth.uid() or public.is_staff());
+  where id = p_connection and revoked_at is null and (user_id = auth.uid() or (public.is_staff() and public.is_active_user()));
   if not found then
     raise exception 'Connexion introuvable ou déjà révoquée.' using errcode = 'P0002';
   end if;
@@ -164,7 +164,7 @@ begin
       raise exception 'Action réservée aux administrateurs' using errcode = '42501';
     end if;
     if new.suspended_at is distinct from old.suspended_at
-       and not (public.is_staff() and old.role = 'student' and old.id <> auth.uid()) then
+       and not (public.is_staff() and public.is_active_user() and old.role = 'student' and old.id <> auth.uid()) then
       raise exception 'Action réservée à l''équipe pédagogique (comptes étudiants)' using errcode = '42501';
     end if;
   end if;
@@ -183,7 +183,7 @@ as $$
 declare
   v_role public.user_role;
 begin
-  if not public.is_staff() then
+  if not (public.is_staff() and public.is_active_user()) then
     raise exception 'Réservé à l''équipe pédagogique.' using errcode = '42501';
   end if;
   if p_user = auth.uid() then
