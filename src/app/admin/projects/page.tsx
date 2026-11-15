@@ -87,7 +87,7 @@ export default async function AdminProjects() {
                       <span className="sr-only sm:not-sr-only">{p.status === "hidden" ? "Rétablir" : "Masquer"}</span>
                     </button>
                   </form>
-                  {viewer?.isAdmin && (
+                  {viewer?.isStaff && (
                     <ConfirmDelete
                       action={adminDeleteProject.bind(null, p.id!)}
                       title={`Supprimer « ${p.title} » ?`}

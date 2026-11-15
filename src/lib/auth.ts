@@ -42,15 +42,15 @@ export async function requireViewer(next?: string): Promise<Viewer> {
   return viewer;
 }
 
-/** Connecté mais pas prof : page 403 (forbidden.tsx) plutôt qu'une redirection muette. */
+/** Connecté mais pas prof (ou compte suspendu) : page 403 (forbidden.tsx) plutôt qu'une redirection muette. */
 export async function requireStaff(): Promise<Viewer> {
   const viewer = await requireViewer("/admin");
-  if (!viewer.isStaff) forbidden();
+  if (!viewer.isStaff || viewer.isSuspended) forbidden();
   return viewer;
 }
 
 export async function requireAdmin(): Promise<Viewer> {
   const viewer = await requireViewer("/admin");
-  if (!viewer.isAdmin) forbidden();
+  if (!viewer.isAdmin || viewer.isSuspended) forbidden();
   return viewer;
 }

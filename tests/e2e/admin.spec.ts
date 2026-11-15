@@ -83,6 +83,62 @@ test.describe("Administration", () => {
     await expect(page.getByRole("row", { name: new RegExp(title) })).toHaveCount(0);
   });
 
+  test("un·e enseignant·e gère les agents IA, supprime un projet et un compte étudiant", async ({ page }) => {
+    // Un étudiant crée un projet jetable (son compte sera supprimé ensuite).
+    const title = `Projet prof ${Date.now()}`;
+    await login(page, uniqueEmail("eleve-a-supprimer"), "/settings");
+    await page.getByLabel("Prénom et nom").fill("Élève Jetable");
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await expect(page.getByText("Profil mis à jour.")).toBeVisible();
+    await page.goto("/dashboard");
+    await page.getByLabel(/Nom du jeu/).fill(title);
+    await page.getByRole("button", { name: "Créer le projet" }).click();
+    await page.waitForURL(/\/edit\/basics$/);
+    await logout(page);
+
+    await login(page, "prof.demo@univ-reims.fr", "/admin");
+    const adminNav = page.getByRole("navigation", { name: "Administration" });
+    await expect(adminNav.getByRole("link", { name: "Réglages" })).toHaveCount(0);
+
+    // Panel Agents IA : enregistrer les réglages (sans les changer, pour ne pas gêner les autres tests).
+    await adminNav.getByRole("link", { name: "Agents IA" }).click();
+    await expect(page.getByRole("heading", { name: "Réglages des agents" })).toBeVisible();
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await expect(page.getByText("Réglages des agents enregistrés.")).toBeVisible();
+
+    // Supprimer le projet.
+    await adminNav.getByRole("link", { name: "Projets" }).click();
+    await page.getByRole("row", { name: new RegExp(title) }).getByRole("button", { name: `Supprimer ${title}` }).click();
+    await page.getByRole("dialog", { name: `Supprimer « ${title} » ?` }).getByRole("button", { name: "Supprimer le projet" }).click();
+    await expect(page.getByRole("row", { name: new RegExp(title) })).toHaveCount(0);
+
+    // Un compte admin n'est pas gérable par un·e enseignant·e.
+    await adminNav.getByRole("link", { name: "Comptes" }).click();
+    await page.getByLabel("Rechercher un compte").fill("Admin Démo");
+    await page.getByRole("button", { name: "Rechercher" }).click();
+    await expect(page.getByRole("listitem").filter({ hasText: "Admin Démo" }).getByText("Gérer")).toHaveCount(0);
+
+    // Le compte étudiant, si : suspension et suppression, mais pas de changement de rôle.
+    await page.getByLabel("Rechercher un compte").fill("Élève Jetable");
+    await page.getByRole("button", { name: "Rechercher" }).click();
+    const item = page.getByRole("listitem").filter({ hasText: "Élève Jetable" });
+    await item.getByText("Gérer").click();
+    await expect(item.getByRole("button", { name: /^Passer/ })).toHaveCount(0);
+    // Après chaque action la page se rafraîchit : on rouvre « Gérer » s'il s'est refermé.
+    const manage = async (button: string) => {
+      if (!(await item.getByRole("button", { name: button }).isVisible())) await item.getByText("Gérer").click();
+      return item.getByRole("button", { name: button });
+    };
+    await (await manage("Suspendre")).click();
+    await expect(item.getByText("Suspendu")).toBeVisible();
+    await (await manage("Réactiver")).click();
+    await expect(item.getByText("Suspendu")).toHaveCount(0);
+    await manage("Supprimer le compte");
+    await item.getByLabel("Écris SUPPRIMER pour confirmer").fill("SUPPRIMER");
+    await item.getByRole("button", { name: "Supprimer le compte" }).click();
+    await expect(page.getByText("Compte supprimé.")).toBeVisible();
+  });
+
   test("l'administration et l'éditeur tiennent sur un écran de téléphone", async ({ page }) => {
     await login(page, "admin.demo@univ-reims.fr", "/admin");
     await page.setViewportSize({ width: 390, height: 844 });

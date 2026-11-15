@@ -12,12 +12,8 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
     { href: "/admin/projects", label: "Projets", icon: FolderKanban },
     { href: "/admin/reports", label: "Signalements", icon: Flag },
     { href: "/admin/users", label: "Comptes", icon: Users },
-    ...(isAdmin
-      ? [
-          { href: "/admin/agents", label: "Agents IA", icon: Bot },
-          { href: "/admin/settings", label: "Réglages", icon: Settings },
-        ]
-      : []),
+    { href: "/admin/agents", label: "Agents IA", icon: Bot },
+    ...(isAdmin ? [{ href: "/admin/settings", label: "Réglages", icon: Settings }] : []),
   ];
   return (
     <nav aria-label="Administration" className="-mx-4 min-w-0 px-4 sm:mx-0 sm:px-0 lg:sticky lg:top-24 lg:self-start">
